@@ -1,0 +1,35 @@
+{
+  "name": "cc.el_abejal_bakend",
+  "version": "1.0.0",
+  "description": "<div align=\"center\"><h2>Notice: We are working full time work on <a href=\"https://github.com/coreybutler/nvm-windows/wiki/Runtime\">Runtime</a>, the successor to NVM for Windows.</h2>Complete <a href=\"https://t.co/oGqQCM9FPx\">this form</a> to provide your thoughts and sign up for progress updates.<br/><br/>Updates will also be posted on the <A href=\"https://linkedin.com/company/authorsoftware\">Author Software LinkedIn Page</a>.</div> <br/><br/> <h1 align=\"center\">NVM for Windows</h1>",
+  "main": "build.js",
+  "type": "module",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "dev-simple": "node --watch src/index-simple.js",
+    "test-db": "node test-db.js",
+    "setup": "node setup.js",
+    "create-tables": "node create-tables.js",
+    "create-real-tables": "node create-real-tables.js",
+    "check-tables": "node check-tables.js",
+    "test-paciente": "node test-paciente-creation.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "email-validator": "^2.0.4",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.16.0",
+    "zod": "^3.25.64"
+  }
+}
