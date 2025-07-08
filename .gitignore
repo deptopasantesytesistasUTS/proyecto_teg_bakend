@@ -5,7 +5,6 @@
 *.old
 node_modules/
 db.js
-prisma/
 
 # Folders
 _obj
