@@ -1,1 +1,207 @@
-//bbdd
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Asistencias {
+  idAsistencia Int?
+  idTutoria    Int?
+  idEstudiante Int?
+  asistencia   Boolean?
+  Estudiantes  Estudiantes? @relation(fields: [idEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_estudiante")
+  Tutorias     Tutorias?    @relation(fields: [idTutoria], references: [idTutoria], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_tutoria")
+
+  @@ignore
+}
+
+model Carreras {
+  idCarrera   Int           @id(map: "carreras_pk")
+  nombre      String?       @db.VarChar(100)
+  Estudiantes Estudiantes[]
+  Materias    Materias[]
+}
+
+model Comunicados {
+  idComunicado Int          @id(map: "comunicados_pk")
+  titulo       String?      @db.VarChar
+  texto        String?
+  idUsuario    Int?
+  created_At   DateTime?    @db.Timestamp(6)
+  Users        Users?       @relation(fields: [idUsuario], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_comunicados_usuario")
+  Receptores   Receptores[]
+}
+
+model Estudiantes {
+  cedula      Int           @id(map: "estudiantes_cedula_pk")
+  nombre1     String?       @db.VarChar
+  nombre2     String?       @db.VarChar
+  apellido1   String?       @db.VarChar
+  apellido2   String?       @db.VarChar
+  telf        String?       @db.VarChar
+  idCarrera   Int?
+  idUsuario   Int?
+  promedio    Float?
+  Asistencias Asistencias[] @ignore
+  Carreras    Carreras?     @relation(fields: [idCarrera], references: [idCarrera], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_carrera")
+  Users       Users?        @relation(fields: [idUsuario], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_usuario")
+  Matricula   Matricula[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model Jurados {
+  id           Int?
+  cedulaJurado Int?
+  idSeccion    Int?
+  Personal     Personal?  @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
+  Secciones    Secciones? @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_seccion")
+
+  @@ignore
+}
+
+model Materias {
+  idMateria Int               @id @default(autoincrement())
+  idCarrera Int
+  categoria materia_categoria
+  Carreras  Carreras          @relation(fields: [idCarrera], references: [idCarrera], onDelete: NoAction, onUpdate: NoAction, map: "fk_materias_carrera")
+  Secciones Secciones[]
+}
+
+model Matricula {
+  idMatricula                              Int         @id @default(autoincrement())
+  idEstudiante                             Int
+  idSeccion                                Int
+  titulo1                                  String?     @db.VarChar(255)
+  titulo2                                  String?     @db.VarChar(255)
+  titulo3                                  String?     @db.VarChar(255)
+  tituloElegido                            Int?
+  borrador1                                String?     @db.VarChar(255)
+  borrador2                                String?     @db.VarChar(255)
+  borrador3                                String?     @db.VarChar(255)
+  borrador4                                String?     @db.VarChar(255)
+  borradorFinal                            String?     @db.VarChar(255)
+  urlCargaAcad                             String?     @db.VarChar(255)
+  virtual                                  Boolean?
+  lapsoAcac                                Int?
+  Estudiantes                              Estudiantes @relation(fields: [idEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante")
+  lapsoAcac_Matricula_lapsoAcacTolapsoAcac lapsoAcac?  @relation("Matricula_lapsoAcacTolapsoAcac", fields: [lapsoAcac], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lapso")
+  Secciones                                Secciones   @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_matricula_seccion")
+}
+
+model Personal {
+  cedula    Int         @id(map: "personal_pk")
+  nombre1   String?     @db.VarChar
+  nombre2   String?     @db.VarChar
+  apellido1 String?     @db.VarChar
+  apellido2 String?     @db.VarChar
+  telf      String?     @db.VarChar
+  userID    Int?
+  Jurados   Jurados[]   @ignore
+  Users     Users?      @relation(fields: [userID], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_personal_user")
+  tituloPer tituloPer[] @ignore
+}
+
+model Receptores {
+  id           Int          @id
+  idSeccion    Int?
+  idComunicado Int?
+  Comunicados  Comunicados? @relation(fields: [idComunicado], references: [idComunicado], onDelete: NoAction, onUpdate: NoAction, map: "fk_receptores_comunicado")
+  Secciones    Secciones?   @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_receptores_seccion")
+}
+
+model Roles {
+  roleId Int     @id(map: "roles_pkey")
+  nombre String? @db.VarChar
+  Users  Users[]
+}
+
+model Secciones {
+  idSeccion  Int          @id(map: "secciones_idseccion_pk")
+  idMateria  Int?
+  letra      String?      @db.Char(1)
+  idDocente  Int?
+  lapsoAcad  Int?
+  Jurados    Jurados[]    @ignore
+  Matricula  Matricula[]
+  Receptores Receptores[]
+  lapsoAcac  lapsoAcac?   @relation(fields: [lapsoAcad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_lapso")
+  Materias   Materias?    @relation(fields: [idMateria], references: [idMateria], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_materia")
+  Tutorias   Tutorias[]
+}
+
+model Tutorias {
+  idTutoria   Int           @id(map: "tutorias_pk")
+  fecha       DateTime?     @db.Date
+  idSeccion   Int?
+  Asistencias Asistencias[] @ignore
+  Secciones   Secciones?    @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_tutorias_seccion")
+}
+
+model Users {
+  userId      Int           @id @default(autoincrement())
+  correo      String        @db.VarChar(255)
+  password    String        @db.VarChar(255)
+  created_at  DateTime      @default(now()) @db.Timestamp(6)
+  updated_at  DateTime      @default(now()) @db.Timestamp(6)
+  last_sesion DateTime?     @db.Timestamp(6)
+  role_id     Int
+  status      String        @db.VarChar(20)
+  Comunicados Comunicados[]
+  Estudiantes Estudiantes[]
+  Personal    Personal[]
+  Roles       Roles         @relation(fields: [role_id], references: [roleId], onDelete: NoAction, onUpdate: NoAction, map: "fk_role")
+}
+
+model lapsoAcac {
+  id                                       Int         @id(map: "lapsoacac_id_pk")
+  fechaInicio                              DateTime?   @db.Date
+  fechaFinal                               DateTime?   @db.Date
+  fechaB1                                  DateTime?   @db.Date
+  fechaB2                                  DateTime?   @db.Date
+  fechaB3                                  DateTime?   @db.Date
+  fechaB4                                  DateTime?   @db.Date
+  fechaBFinal                              DateTime?   @db.Date
+  fechaTitulos                             DateTime?   @db.Date
+  Matricula_Matricula_lapsoAcacTolapsoAcac Matricula[] @relation("Matricula_lapsoAcacTolapsoAcac")
+  Secciones                                Secciones[]
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model tituloPer {
+  id          Int?
+  cedula      Int?
+  idProfesion Int?
+  Personal    Personal?  @relation(fields: [cedula], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_tituloper_cedula")
+  tituloUni   tituloUni? @relation(fields: [idProfesion], references: [idProfesion], onDelete: NoAction, onUpdate: NoAction, map: "fk_tituloper_profesion")
+
+  @@ignore
+}
+
+model tituloUni {
+  idProfesion Int            @id @default(autoincrement())
+  descripcion String         @db.VarChar(255)
+  categoria   categoria_enum
+  tituloPer   tituloPer[]    @ignore
+}
+
+enum categoria_enum {
+  universitario
+  tecnico
+}
+
+enum materia_categoria {
+  obligatoria
+  electiva
+  investigacion_II          @map("investigacion II")
+  Trabajo_Especial_de_Grado @map("Trabajo Especial de Grado")
+  Tutorias
+}
+
+enum user_status {
+  activo
+  inactivo
+}
