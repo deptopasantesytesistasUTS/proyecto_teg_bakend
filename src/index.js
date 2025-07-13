@@ -1,75 +1,31 @@
-import express from 'express';
-import { PORT } from './config.js';
-import morgan from 'morgan';
-import cors from 'cors';
-import { connectDB } from './prisma.js'; // Importar Prisma en lugar de pg
+import express from "express";
+import routes from "./routes/routes_login.js";
+import prisma from "./prisma.js";
+import cors from "cors";
+import { PORT } from "./config.js";
 
 const app = express();
 
-// Middlewares
-app.use(morgan('dev'));
+// Habilita CORS para el frontend antes de las rutas
+app.use(cors({ origin: "http://localhost:3000" }));
+
+// Middleware para parsear JSON
 app.use(express.json());
-app.use(cors());
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.json({
-    message: 'API del Proyecto Técnico funcionando correctamente',
-    version: '1.0.0',
-    endpoints: {
-      usuarios: '/api/usuarios',
-      cursos: '/api/cursos',
-      inscripciones: '/api/inscripciones'
-    }
-  });
-});
-
-// Ruta para probar la conexión a la base de datos
-app.get('/api/test-db', async (req, res) => {
-  try {
-    const isConnected = await connectDB();
-    if (isConnected) {
-      res.json({
-        success: true,
-        message: 'Conexión a la base de datos exitosa con Prisma'
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        message: 'Error en la conexión a la base de datos'
-      });
-    }
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error al probar la conexión',
-      error: error.message
-    });
-  }
-});
-
-// Middleware para manejar rutas no encontradas
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Ruta no encontrada'
-  });
-});
-
-// Middleware para manejar errores
-app.use((error, req, res, next) => {
-  console.error('Error:', error);
-  res.status(500).json({
-    success: false,
-    message: 'Error interno del servidor'
-  });
-});
+// Tus rutas
+app.use("/api", routes);
 
 app.listen(PORT, () => {
-  console.log('Servidor escuchando en el puerto', PORT);
-  console.log(`API disponible en: http://localhost:${PORT}`);
-  
-  // Probar conexión a la base de datos al iniciar
-  connectDB();
+  console.log(`Servidor backend escuchando en el puerto ${PORT}`);
 });
 
+// Test de conexión a Prisma
+async function testPrisma() {
+  try {
+    await prisma.$connect();
+    console.log("✅ Prisma conectado correctamente a la base de datos");
+  } catch (error) {
+    console.error("❌ Error conectando Prisma:", error.message);
+  }
+}
+testPrisma();
