@@ -8,18 +8,26 @@ const app = express();
 
 // Habilita CORS para el frontend antes de las rutas
 app.use(cors({ 
-  origin: [
-    "http://localhost:3000",
-    "https://proyecto-teg.netlify.app",
-    "https://proyecto-tec.netlify.app"
-  ],
+  origin: true, // Allow all origins temporarily
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
 // Handle preflight requests
 app.options('*', cors());
+
+// Additional CORS headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Middleware para parsear JSON
 app.use(express.json());
