@@ -10,10 +10,16 @@ const app = express();
 app.use(cors({ 
   origin: [
     "http://localhost:3000",
-    "https://proyecto-teg.netlify.app"
+    "https://proyecto-teg.netlify.app",
+    "https://proyecto-tec.netlify.app"
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Middleware para parsear JSON
 app.use(express.json());
