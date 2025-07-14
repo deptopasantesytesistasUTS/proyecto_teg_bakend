@@ -7,7 +7,13 @@ import { PORT } from "./config.js";
 const app = express();
 
 // Habilita CORS para el frontend antes de las rutas
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ 
+  origin: [
+    "http://localhost:3000",
+    "https://proyecto-teg.netlify.app"
+  ],
+  credentials: true
+}));
 
 // Middleware para parsear JSON
 app.use(express.json());
