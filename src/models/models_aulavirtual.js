@@ -96,4 +96,22 @@ export async function getCedulaEstudianteByUserId(userId) {
     select: { cedula: true }
   });
   return estudiante ? estudiante.cedula : null;
+}
+
+// Obtener participantes (docente y estudiantes) de una sección
+export async function getParticipantesBySeccion(idSeccion) {
+  // Obtener la sección con el docente
+  const seccion = await prisma.secciones.findUnique({
+    where: { idSeccion: Number(idSeccion) },
+    include: { Personal: true }
+  });
+  // Obtener los estudiantes inscritos en la sección
+  const matriculas = await prisma.matricula.findMany({
+    where: { idSeccion: Number(idSeccion) },
+    include: { Estudiantes: true }
+  });
+  return {
+    docente: seccion?.Personal || null,
+    estudiantes: matriculas.map(m => m.Estudiantes)
+  };
 } 

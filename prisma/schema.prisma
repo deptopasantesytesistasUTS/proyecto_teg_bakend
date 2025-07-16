@@ -127,6 +127,7 @@ model Secciones {
   Materias   Materias?    @relation(fields: [idMateria], references: [idMateria], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_materia")
   Personal   Personal?    @relation(fields: [idDocente], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_personal")
   Tutorias   Tutorias[]
+  Recursos   Recursos[]
 }
 
 model Tutorias {
@@ -197,4 +198,14 @@ enum materia_categoria {
 enum user_status {
   activo
   inactivo
+}
+
+model Recursos {
+  idRecurso   Int      @id @default(autoincrement())
+  idSeccion   Int
+  nombre      String   @db.VarChar(255)
+  tipo        String   @db.VarChar(50)
+  url         String   @db.VarChar(255)
+  descripcion String?  @db.VarChar(255)
+  Secciones   Secciones @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction)
 }

@@ -13,5 +13,7 @@ router.get("/materias-dashboard", controllers.getMateriasDashboardController);
 router.get("/cedula-personal", controllers.getCedulaPersonalController);
 // Ruta para obtener la cédula de un estudiante en la tabla Estudiantes
 router.get("/cedula-estudiante", controllers.getCedulaEstudianteController);
+// Ruta para obtener participantes de una sección (docente y estudiantes)
+router.get("/secciones/:idSeccion/participantes", controllers.getParticipantesBySeccionController);
 
 export default router; 
