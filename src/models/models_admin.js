@@ -1,4 +1,6 @@
+import { materia_categoria } from "@prisma/client";
 import prisma from "../prisma.js";
+import { id } from "date-fns/locale";
 
 export async function getSemesterByDate(fecha) {
 
@@ -17,6 +19,17 @@ export async function getSemesterByDate(fecha) {
     where: {
       fechaInicio: { lte: isoStartOfDay },
       fechaFinal: { gte: isoEndOfDay },
+    },
+  });
+}
+
+export async function getSemesterByDate2(fecha) {
+
+
+  return prisma.lapsoAcac.findFirst({
+    where: {
+      fechaInicio: { lte: fecha },
+      fechaFinal: { gte: fecha },
     },
   });
 }
@@ -62,4 +75,176 @@ export async function editSemesterById(id, updateData) {
       ...updateData,
     },
   });
+}
+
+export async function createUser(correo,password,role_id) {
+  return prisma.users.create({
+    correo: correo,
+    password: password,
+    role_id: role_id,
+    status: "activo",
+  });
+}
+
+export async function deleteUserByEmail(correo) {
+  return prisma.estudiantes.delete({
+    where: {
+      correo: correo
+    }
+  })
+}
+
+export async function createStudent(cedula,nombre1,nombre2,apellido1,apellido2,telf,idCarrera,idUsuario){
+  return prisma.estudiantes.create({
+    data: {
+      cedula: cedula,
+      nombre1: nombre1,
+      nombre2: nombre2,
+      apellido1: apellido1,
+      apellido2: apellido2,
+      telf: telf,
+      idCarrera: idCarrera,
+      idUsuario: idUsuario,
+    },
+  });
+}
+
+export async function getStudentById(cedula) {
+  return prisma.estudiantes.findFirst({
+    select: {
+      cedula: true,
+      nombre1: true,
+      nombre2: true,
+      apellido1: true,
+      apellido2: true,
+      telf: true,
+      Carreras: {
+        select:{
+          nombre: true,
+        }
+      }
+    },
+    where: {
+      cedula: cedula
+    }
+  });
+}
+
+export async function getMatriculaInfo(cedula,lapso) {
+  return prisma.matricula.findFirst({
+    where: {
+      idEstudiante: cedula,
+      lapsoAcac: lapso,
+    },
+  })
+}
+
+export async function editUserbyCedulaE(cedula, updateData) {
+  return prisma.users.update({
+    where: {
+      Estudiantes: {
+        where: {
+          cedula: cedula,
+        },
+      },
+    },
+    data: {
+      ...updateData,
+    },
+  });
+}
+
+export async function editStudentbyCorreo(correo, updateData) {
+  return prisma.estudiantes.update({
+    where: {
+      Users: {
+        where: {
+          correo: correo,
+        },
+      },
+    },
+    data: {
+      ...updateData,
+    },
+  });
+}
+
+export async function editStudentbyCedula(cedula, updateData) {
+  return prisma.estudiantes.update({
+    where: {
+      cedula: cedula,
+    },
+    data: {
+      ...updateData,
+    },
+  });
+}
+
+export async function getStudentListA() {
+  return prisma.estudiantes.findMany({
+    select: {
+      cedula: true,
+      nombre1: true,
+      nombre2: true,
+      apellido1: true,
+      apellido2: true,
+      Carreras: {
+        select: {
+          nombre: true,
+        },
+      },
+      Matricula: {
+        select: {
+          Secciones:{
+            select: {
+              Materias: {
+                categoria: true
+              }
+            }
+          }
+        }
+      },
+      Users:{
+        select: {
+          status: true,
+        }
+      }
+    },
+  });
+  
+}
+
+export async function getUnidadesA(lapso){
+  return prisma.secciones.findMany({
+    select:
+    {
+      idSeccion: true,
+      Personal: {
+        select:{
+          cedula: true,
+          Users:{
+            select:{
+              correo: true
+            }
+          }
+        }
+      },
+      Materias:{
+        select: {
+          Carreras:{
+            select:{
+              nombre: true
+            }
+          }
+        }
+      }
+    },
+    where:{
+      lapsoAcac: lapso
+    }
+  })
+}
+
+export async function createJudge() {
+  
 }
