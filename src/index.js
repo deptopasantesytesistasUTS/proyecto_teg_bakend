@@ -4,6 +4,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import prisma from "./prisma.js";
 import cors from "cors";
 import { PORT } from "./config.js";
+import aulavirtualRoutes from "./routes/aulavirtual.routes.js";
 
 const app = express();
 
@@ -47,6 +48,7 @@ app.use(express.json());
 // Tus rutas
 app.use("/api", routes);
 app.use("/api", adminRoutes);
+app.use("/api", aulavirtualRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor backend escuchando en el puerto ${PORT}`);

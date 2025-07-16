@@ -172,3 +172,5 @@ export async function editSemester(req, res) {
     res.status(500).json({ error: error.message || "Error en el servidor" });
   }
 }
+
+// Eliminar funciones y exports de aula virtual
