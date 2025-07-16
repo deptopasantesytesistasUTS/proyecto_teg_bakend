@@ -14,6 +14,9 @@ import {
   createUser,
   getStudentListA,
   getUnidadesA,
+  createMatricula,
+  deleteStudentbyCedula,
+  getMateriaCategoria,
 } from "../models/models_admin.js";
 
 import { getUserByCorreo } from "../models/models_login.js";
@@ -203,13 +206,12 @@ function generarCadenaAleatoria(longitud) {
 }
 
 export async function putDatosPersonales(req, res) {
-  const { estudiante,correo } = req.body;
+  const { estudiante, correo } = req.body;
   if (!estudiante) {
     return res.status(400).json({ error: "Error en los datos ingresados" });
   }
   try {
-
-    const editedStudent = await editStudentbyCorreo(correo,estudiante)
+    const editedStudent = await editStudentbyCorreo(correo, estudiante);
 
     if (!editedStudent) {
       return res.status(400).json({
@@ -280,14 +282,13 @@ export async function putPassword(req, res) {
   }
 }
 
-
 export async function postEstudiante(req, res) {
-  const estudiante = req.body;
+  const estudiante = req.body.newStudent;
 
   try {
     const password = generarCadenaAleatoria(8);
 
-    if ((!estudiante.correo, !password)) {
+    if (!estudiante.correo || !password) {
       return res.status(400).json({
         error: "Correo y contraseña son requeridos",
       });
@@ -319,6 +320,33 @@ export async function postEstudiante(req, res) {
       });
     }
 
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    if (!lapso) {
+      return res
+        .status(401)
+        .json({ error: "Error al obtener lapso academico" });
+    }
+
+    const matricula = await createMatricula(
+      lapso.id,
+      parseInt(estudiante.cedula, 10),
+      parseInt(estudiante.seccion)
+    );
+
+    if (!matricula) {
+      const deleteUser = await deleteUserByEmail(user.correo);
+      const deleteStudent = await deleteStudentbyCedula(
+        parseInt(estudiante.cedula, 10)
+      );
+      return res.status(400).json({
+        error: "Error en la creacion del estudiante",
+      });
+    }
+
     res.json({
       ok: true,
     });
@@ -330,7 +358,17 @@ export async function postEstudiante(req, res) {
 
 export async function getStudentListAdmin(req, res) {
   try {
-    const estudiantes = await getStudentListA();
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    if (!lapso) {
+      return res
+        .status(401)
+        .json({ error: "Error al obtener lapso academico" });
+    }
+    const estudiantes = await getStudentListA(lapso);
 
     if (!estudiantes) {
       return res.status(400).json({
@@ -338,8 +376,27 @@ export async function getStudentListAdmin(req, res) {
       });
     }
 
+    console.log("estudiantes");
+    console.log(estudiantes);
+
     res.json({
-      estudiantes: estudiantes,
+      estudiantes: estudiantes.map((est) => {
+        return {
+          nombre:
+            est.Estudiantes.nombre1 +
+            " " +
+            est.Estudiantes.nombre2 +
+            " " +
+            est.Estudiantes.apellido1 +
+            " " +
+            est.Estudiantes.apellido2,
+          cedula: est.Estudiantes.cedula,
+          carrera: est.Estudiantes.Carreras.nombre,
+          materia: est.Secciones.Materias.categoria,
+          status: est.Estudiantes.Users.status,
+          email: est.Estudiantes.Users.correo,
+        };
+      }),
     });
   } catch (error) {
     console.error(error);
@@ -347,10 +404,9 @@ export async function getStudentListAdmin(req, res) {
   }
 }
 
-export async function getStudentProfile(req,res) {
-  const {cedula} = req.params
+export async function getStudentProfile(req, res) {
+  const { cedula } = req.params;
   try {
-
     const estudiante = await getStudentById(cedula);
 
     if (!estudiante) {
@@ -370,32 +426,24 @@ export async function getStudentProfile(req,res) {
         .json({ error: "Error al obtener lapso academico" });
     }
 
-    const matricula = await getMatriculaInfo(cedula,lapso)
+    const matricula = await getMatriculaInfo(cedula, lapso);
 
     if (!matricula) {
-      return res
-        .status(401)
-        .json({ error: "Error al obtener la matricula" });
+      return res.status(401).json({ error: "Error al obtener la matricula" });
     }
-
-
 
     res.json({
       estudiante: estudiante,
       matricula: matricula,
     });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message || "Error en el servidor" });
   }
 }
 
-
-
-export async function getUnidadesList(req,res) {
+export async function getUnidadesList(req, res) {
   try {
-
     const today = new Date();
     const isoToday = today.toISOString();
 

@@ -3,7 +3,6 @@ import prisma from "../prisma.js";
 import { id } from "date-fns/locale";
 
 export async function getSemesterByDate(fecha) {
-
   const startOfDayUTC = new Date(fecha + "T00:00:00.000Z");
 
   // Convert it to an ISO string
@@ -24,8 +23,6 @@ export async function getSemesterByDate(fecha) {
 }
 
 export async function getSemesterByDate2(fecha) {
-
-
   return prisma.lapsoAcac.findFirst({
     where: {
       fechaInicio: { lte: fecha },
@@ -50,8 +47,6 @@ export async function createSemester(
   fechaBFinal,
   fechaTitulos
 ) {
-
-
   return prisma.lapsoAcac.create({
     data: {
       id: id,
@@ -77,24 +72,53 @@ export async function editSemesterById(id, updateData) {
   });
 }
 
-export async function createUser(correo,password,role_id) {
+export async function createUser(correo, password, role_id) {
   return prisma.users.create({
-    correo: correo,
-    password: password,
-    role_id: role_id,
-    status: "activo",
+    data: {
+      password: password,
+      role_id: role_id,
+      status: "activo",
+      correo: correo,
+    },
+  });
+}
+
+export async function createMatricula(lapso,cedula,seccion) {
+  return prisma.matricula.create({
+    data: {
+      idSeccion: seccion,
+      idEstudiante: cedula,
+      lapsoAcac: lapso
+    },
   });
 }
 
 export async function deleteUserByEmail(correo) {
-  return prisma.estudiantes.delete({
+  return prisma.users.delete({
     where: {
-      correo: correo
+      correo: correo,
+    },
+  });
+}
+
+export async function deleteStudentbyCedula(cedula) {
+  return prisma.estudiantes.delete({
+    where:{
+      cedula: cedula,
     }
   })
 }
 
-export async function createStudent(cedula,nombre1,nombre2,apellido1,apellido2,telf,idCarrera,idUsuario){
+export async function createStudent(
+  cedula,
+  nombre1,
+  nombre2,
+  apellido1,
+  apellido2,
+  telf,
+  idCarrera,
+  idUsuario
+) {
   return prisma.estudiantes.create({
     data: {
       cedula: cedula,
@@ -119,24 +143,39 @@ export async function getStudentById(cedula) {
       apellido2: true,
       telf: true,
       Carreras: {
-        select:{
+        select: {
           nombre: true,
-        }
-      }
+        },
+      },
     },
     where: {
-      cedula: cedula
-    }
+      cedula: cedula,
+    },
   });
 }
 
-export async function getMatriculaInfo(cedula,lapso) {
+export async function getMatriculaInfo(cedula, lapso) {
   return prisma.matricula.findFirst({
     where: {
       idEstudiante: cedula,
       lapsoAcac: lapso,
     },
-  })
+  });
+}
+
+export async function getMateriaCategoria(seccion) {
+  return prisma.secciones.findFirst({
+    select:{
+      Materias:{
+        select:{
+          categoria: true,
+        }
+      }
+    },
+    where:{
+      idSeccion: seccion,
+    }
+  });
 }
 
 export async function editUserbyCedulaE(cedula, updateData) {
@@ -180,71 +219,78 @@ export async function editStudentbyCedula(cedula, updateData) {
   });
 }
 
-export async function getStudentListA() {
-  return prisma.estudiantes.findMany({
+
+export async function getStudentListA(lapso) {
+  return prisma.matricula.findMany({
     select: {
-      cedula: true,
-      nombre1: true,
-      nombre2: true,
-      apellido1: true,
-      apellido2: true,
-      Carreras: {
+      Estudiantes: {
         select: {
-          nombre: true,
+          cedula: true,
+          nombre1: true,
+          nombre2: true,
+          apellido1: true,
+          apellido2: true,
+          Carreras: {
+            select: {
+              nombre: true,
+            },
+          },
+          Users: {
+            select: {
+              status: true,
+              correo: true,
+            },
+          },
         },
       },
-      Matricula: {
+      Secciones: {
         select: {
-          Secciones:{
+          Materias: {
             select: {
-              Materias: {
-                categoria: true
-              }
-            }
-          }
-        }
+              categoria: true,
+            },
+          },
+        },
       },
-      Users:{
-        select: {
-          status: true,
-        }
-      }
+    },
+    where: {
+      // Filter Estudiantes who have at least one Matricula recor
+
+      // And that Matricula record must be linked to a specific lapsoAcac
+      // The 'lapsoAcac' field on Matricula directly holds the ID
+      lapsoAcac: lapso.id, // Assuming yourLapsoAcacId is the integer ID of the academic period
     },
   });
-  
 }
 
-export async function getUnidadesA(lapso){
+export async function getUnidadesA(lapso) {
   return prisma.secciones.findMany({
-    select:
-    {
+    select: {
       idSeccion: true,
       Personal: {
-        select:{
-          cedula: true,
-          Users:{
-            select:{
-              correo: true
-            }
-          }
-        }
-      },
-      Materias:{
         select: {
-          Carreras:{
-            select:{
-              nombre: true
-            }
-          }
-        }
-      }
+          cedula: true,
+          Users: {
+            select: {
+              correo: true,
+            },
+          },
+        },
+      },
+      Materias: {
+        select: {
+          Carreras: {
+            select: {
+              nombre: true,
+            },
+          },
+        },
+      },
     },
-    where:{
-      lapsoAcac: lapso
-    }
-  })
+    where: {
+      lapsoAcac: lapso,
+    },
+  });
 }
 
-export async function createJudge() {
-  
-}
+export async function createJudge() {}
