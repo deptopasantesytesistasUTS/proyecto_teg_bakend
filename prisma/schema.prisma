@@ -139,7 +139,7 @@ model Tutorias {
 
 model Users {
   userId      Int           @id @default(autoincrement())
-  correo      String        @db.VarChar(255)
+  correo      String        @unique(map: "unique_correo") @db.VarChar(255)
   password    String        @db.VarChar(255)
   created_at  DateTime      @default(now()) @db.Timestamp(6)
   updated_at  DateTime      @default(now()) @db.Timestamp(6)
