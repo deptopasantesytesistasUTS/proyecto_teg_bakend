@@ -7,16 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model Asistencias {
-  idAsistencia Int?
+  idAsistencia Int          @id @default(autoincrement())
   idTutoria    Int?
   idEstudiante Int?
   asistencia   Boolean?
   Estudiantes  Estudiantes? @relation(fields: [idEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_estudiante")
   Tutorias     Tutorias?    @relation(fields: [idTutoria], references: [idTutoria], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_tutoria")
-
-  @@ignore
 }
 
 model Carreras {
@@ -46,21 +43,18 @@ model Estudiantes {
   idCarrera   Int?
   idUsuario   Int?
   promedio    Float?
-  Asistencias Asistencias[] @ignore
+  Asistencias Asistencias[]
   Carreras    Carreras?     @relation(fields: [idCarrera], references: [idCarrera], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_carrera")
   Users       Users?        @relation(fields: [idUsuario], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_usuario")
   Matricula   Matricula[]
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model Jurados {
-  id           Int?
+  id           Int        @id @default(autoincrement())
   cedulaJurado Int?
   idSeccion    Int?
   Personal     Personal?  @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
   Secciones    Secciones? @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_seccion")
-
-  @@ignore
 }
 
 model Materias {
@@ -100,9 +94,10 @@ model Personal {
   apellido2 String?     @db.VarChar
   telf      String?     @db.VarChar
   userID    Int?
-  Jurados   Jurados[]   @ignore
+  Jurados   Jurados[]
   Users     Users?      @relation(fields: [userID], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_personal_user")
-  tituloPer tituloPer[] @ignore
+  Secciones Secciones[]
+  tituloPer tituloPer[]
 }
 
 model Receptores {
@@ -125,11 +120,12 @@ model Secciones {
   letra      String?      @db.Char(1)
   idDocente  Int?
   lapsoAcad  Int?
-  Jurados    Jurados[]    @ignore
+  Jurados    Jurados[]
   Matricula  Matricula[]
   Receptores Receptores[]
   lapsoAcac  lapsoAcac?   @relation(fields: [lapsoAcad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_lapso")
   Materias   Materias?    @relation(fields: [idMateria], references: [idMateria], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_materia")
+  Personal   Personal?    @relation(fields: [idDocente], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_personal")
   Tutorias   Tutorias[]
 }
 
@@ -137,7 +133,7 @@ model Tutorias {
   idTutoria   Int           @id(map: "tutorias_pk")
   fecha       DateTime?     @db.Date
   idSeccion   Int?
-  Asistencias Asistencias[] @ignore
+  Asistencias Asistencias[]
   Secciones   Secciones?    @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_tutorias_seccion")
 }
 
@@ -170,22 +166,19 @@ model lapsoAcac {
   Secciones                                Secciones[]
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model tituloPer {
-  id          Int?
+  id          Int        @id @default(autoincrement())
   cedula      Int?
   idProfesion Int?
   Personal    Personal?  @relation(fields: [cedula], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_tituloper_cedula")
   tituloUni   tituloUni? @relation(fields: [idProfesion], references: [idProfesion], onDelete: NoAction, onUpdate: NoAction, map: "fk_tituloper_profesion")
-
-  @@ignore
 }
 
 model tituloUni {
   idProfesion Int            @id @default(autoincrement())
   descripcion String         @db.VarChar(255)
   categoria   categoria_enum
-  tituloPer   tituloPer[]    @ignore
+  tituloPer   tituloPer[]
 }
 
 enum categoria_enum {
