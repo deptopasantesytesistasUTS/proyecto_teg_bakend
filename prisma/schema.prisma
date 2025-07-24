@@ -41,7 +41,7 @@ model Estudiantes {
   apellido2   String?       @db.VarChar
   telf        String?       @db.VarChar
   idCarrera   Int?
-  idUsuario   Int?
+  idUsuario   Int?          @unique
   promedio    Float?
   Asistencias Asistencias[]
   Carreras    Carreras?     @relation(fields: [idCarrera], references: [idCarrera], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_carrera")

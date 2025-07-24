@@ -1,4 +1,4 @@
-import { getMateriasWithAulaVirtual, getMateriaByIdWithAulaVirtual, getMateriasDashboard, getCedulaPersonalByUserId, getCedulaEstudianteByUserId, getParticipantesBySeccion } from "../models/models_aulavirtual.js";
+import { getMateriasWithAulaVirtual, getMateriaByIdWithAulaVirtual, getMateriasDashboard, getCedulaPersonalByUserId, getParticipantesBySeccion } from "../models/models_aulavirtual.js";
 
 // Controlador para obtener todas las materias con sus secciones (aula virtual)
 export async function getMateriasAulaVirtual(req, res) {
@@ -51,19 +51,6 @@ export async function getCedulaPersonalController(req, res) {
   }
 }
 
-// Controlador para obtener la cédula de un estudiante en la tabla Estudiantes
-export async function getCedulaEstudianteController(req, res) {
-  try {
-    const { userId } = req.query;
-    if (!userId) {
-      return res.status(400).json({ error: "userId es requerido" });
-    }
-    const cedula = await getCedulaEstudianteByUserId(userId);
-    res.json({ cedula });
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener la cédula" });
-  }
-}
 
 // Controlador para obtener participantes de una sección
 export async function getParticipantesBySeccionController(req, res) {

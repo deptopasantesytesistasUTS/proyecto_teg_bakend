@@ -6,7 +6,8 @@ import prisma from "./prisma.js";
 import cors from "cors";
 import { PORT } from "./config.js";
 import aulavirtualRoutes from "./routes/aulavirtual.routes.js";
-
+import aulavirtualEstudiantesRoutes from "./routes/aulavirtualEstudiantes.routes.js";
+import aulavirtualDocenteRoutes from "./routes/aulavirtualDocente.routes.js";
 const app = express();
 
 // Habilita CORS para el frontend antes de las rutas
@@ -49,6 +50,9 @@ app.use(express.json());
 // Tus rutas
 app.use("/api", routes);
 app.use("/api", adminRoutes);
+app.use("/api", aulavirtualRoutes)
+app.use("/api", aulavirtualEstudiantesRoutes);
+app.use("/api", aulavirtualDocenteRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor backend escuchando en el puerto ${PORT}`);

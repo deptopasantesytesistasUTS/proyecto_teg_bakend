@@ -3,14 +3,13 @@ const prisma = new PrismaClient();
 
 // Obtener todas las materias con sus secciones (aula virtual)
 export async function getMateriasWithAulaVirtual() {
-  // Usar Prisma para obtener materias, carrera y secciones (letra y docente)
+  
   const materias = await prisma.materias.findMany({
     include: {
       Carreras: true,
       Secciones: true,
     },
   });
-  // Mapear al formato deseado
   return materias.map((m) => ({
     idMateria: m.idMateria,
     categoria: m.categoria,
@@ -89,29 +88,24 @@ export async function getCedulaPersonalByUserId(userId) {
   return personal ? personal.cedula : null;
 }
 
-// Obtener la cédula de un estudiante en la tabla Estudiantes usando userId
-export async function getCedulaEstudianteByUserId(userId) {
-  const estudiante = await prisma.estudiantes.findFirst({
-    where: { idUsuario: Number(userId) },
-    select: { cedula: true }
-  });
-  return estudiante ? estudiante.cedula : null;
-}
-
-// Obtener participantes (docente y estudiantes) de una sección
+// Obtener los participantes (docente y estudiantes) de una sección específica
 export async function getParticipantesBySeccion(idSeccion) {
-  // Obtener la sección con el docente
-  const seccion = await prisma.secciones.findUnique({
-    where: { idSeccion: Number(idSeccion) },
-    include: { Personal: true }
-  });
-  // Obtener los estudiantes inscritos en la sección
-  const matriculas = await prisma.matricula.findMany({
-    where: { idSeccion: Number(idSeccion) },
-    include: { Estudiantes: true }
-  });
-  return {
-    docente: seccion?.Personal || null,
-    estudiantes: matriculas.map(m => m.Estudiantes)
-  };
-} 
+  try {
+    const seccion = await prisma.secciones.findUnique({
+      where: { idSeccion: Number(idSeccion) },
+      include: { Personal: true }
+    });
+    if (!seccion) throw new Error("Sección no encontrada");
+    const matriculas = await prisma.matricula.findMany({
+      where: { idSeccion: Number(idSeccion) },
+      include: { Estudiantes: true }
+    });
+    return {
+      docente: seccion.Personal || null,
+      estudiantes: matriculas.map(m => m.Estudiantes)
+    };
+  } catch (err) {
+    console.error("Error en getParticipantesBySeccion:", err);
+    throw err;
+  }
+}
