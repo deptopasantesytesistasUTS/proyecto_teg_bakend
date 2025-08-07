@@ -49,12 +49,12 @@ export async function getProfileInfo(req,res) {
         perfil = await getUserProfileAdm(parseInt(userId))
 
         perfilInfo = {
-          firstName: perfil.Personal[0].nombre1 || "Usuario",
-          secondName: perfil.Personal[0].nombre2 || "",
-          firstLastName: perfil.Personal[0].apellido1 || "",
-          secondLastName: perfil.Personal[0].apellido2 || "",
-          id: perfil.Personal[0].cedula || "",
-          phone: perfil.Personal[0].telf || "",
+          firstName: perfil.Personal.nombre1 || "Usuario",
+          secondName: perfil.Personal.nombre2 || "",
+          firstLastName: perfil.Personal.apellido1 || "",
+          secondLastName: perfil.Personal.apellido2 || "",
+          id: perfil.Personal.cedula || "",
+          phone: perfil.Personal.telf || "",
           email: perfil.correo,
           role: perfil.Roles.nombre,
         };
@@ -63,25 +63,26 @@ export async function getProfileInfo(req,res) {
       {
         perfil = await getUserProfileDoc(parseInt(userId));
         perfilInfo = {
-          firstName: perfil.Personal[0].nombre1 || "Usuario",
-          secondName: perfil.Personal[0].nombre2 || "DOcente",
-          firstLastName: perfil.Personal[0].apellido1 || "",
-          secondLastName: perfil.Personal[0].apellido2 || "",
-          id: perfil.Personal[0].cedula || "",
-          phone: perfil.Personal[0].telf || "",
+          firstName: perfil.Personal.nombre1 || "Usuario",
+          secondName: perfil.Personal.nombre2 || "DOcente",
+          firstLastName: perfil.Personal.apellido1 || "",
+          secondLastName: perfil.Personal.apellido2 || "",
+          id: perfil.Personal.cedula || "",
+          phone: perfil.Personal.telf || "",
           email: perfil.correo,
           role: perfil.Roles.nombre,
         };
       }
       else if (usuario.role_id == 3){
         perfil = await getUserProfileEst(parseInt(userId));
+        console.log(perfil);
         perfilInfo = {
-          firstName: perfil.Estudiantes[0].nombre1 || "Usuario",
-          secondName: perfil.Estudiantes[0].nombre2 || "DOcente",
-          firstLastName: perfil.Estudiantes[0].apellido1 || "",
-          secondLastName: perfil.Estudiantes[0].apellido2 || "",
-          id: perfil.Estudiantes[0].cedula || "",
-          phone: perfil.Estudiantes[0].telf || "",
+          firstName: perfil.Estudiantes.nombre1 || "Usuario",
+          secondName: perfil.Estudiantes.nombre2 || "DOcente",
+          firstLastName: perfil.Estudiantes.apellido1 || "",
+          secondLastName: perfil.Estudiantes.apellido2 || "",
+          id: perfil.Estudiantes.cedula || "",
+          phone: perfil.Estudiantes.telf || "",
           email: perfil.correo,
           role: perfil.Roles.nombre,
         };

@@ -1,3 +1,4 @@
+import { materia_categoria } from "@prisma/client";
 import prisma from "../prisma.js";
 
 export async function getCarreras() {
@@ -8,14 +9,13 @@ export async function getSectionsTutorbyCareer(carrera, lapso) {
   try {
     const result = await prisma.lapsoAcac.findMany({
       where: {
-        // CORRECTED: Pass the lapsoId directly to the 'id' field
         id: lapso.id,
         Secciones: {
           some: {
             Materias: {
               is: {
                 idCarrera: carrera,
-                categoria: "Tutorias",
+                categoria: materia_categoria.Tutorias,
               },
             },
           },
@@ -23,10 +23,13 @@ export async function getSectionsTutorbyCareer(carrera, lapso) {
       },
       select: {
         Secciones: {
+          // Aquí aplicamos el filtro para asegurar que solo se seleccionen
+          // las secciones que contengan materias de la categoría 'Tutorias'.
           where: {
             Materias: {
               is: {
                 idCarrera: carrera,
+                categoria: materia_categoria.Tutorias,
               },
             },
           },
@@ -34,6 +37,8 @@ export async function getSectionsTutorbyCareer(carrera, lapso) {
             idSeccion: true,
             letra: true,
             Materias: {
+              // Ya no es necesario un `where` aquí, ya que el filtro superior
+              // se encargará de traer solo las materias de la categoría 'Tutorias'.
               select: {
                 categoria: true,
               },
@@ -57,16 +62,17 @@ export async function getSectionsbyCareer(carrera, lapso) {
   try {
     const result = await prisma.lapsoAcac.findMany({
       where: {
-        // CORRECTED: Pass the lapsoId directly to the 'id' field
         id: lapso.id,
         Secciones: {
           some: {
             Materias: {
+              // Aplica el filtro para la carrera
               is: {
                 idCarrera: carrera,
-              },
-              isNot: {
-                categoria: "Tutorias",
+                // Y aquí aplicamos el filtro para excluir las tutorías
+                categoria: {
+                  not: materia_categoria.Tutorias,
+                },
               },
             },
           },
@@ -74,10 +80,15 @@ export async function getSectionsbyCareer(carrera, lapso) {
       },
       select: {
         Secciones: {
+          // Es crucial aplicar el mismo filtro de 'Materias' también aquí
           where: {
             Materias: {
               is: {
                 idCarrera: carrera,
+                // Incluye el filtro de exclusión de tutorías en el 'where' anidado
+                categoria: {
+                  not: materia_categoria.Tutorias,
+                },
               },
             },
           },
@@ -85,6 +96,8 @@ export async function getSectionsbyCareer(carrera, lapso) {
             idSeccion: true,
             letra: true,
             Materias: {
+              // El `select` anidado para `Materias` ya no necesita un filtro `where`
+              // porque el `where` de `Secciones` ya lo ha filtrado.
               select: {
                 categoria: true,
               },

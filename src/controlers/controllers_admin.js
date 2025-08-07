@@ -404,7 +404,7 @@ export async function postEstudiante(req, res) {
       });
     }
 
-    if (!estudiante.seccion_tutor !== "")
+    /* if (!estudiante.seccion_tutor !== "")
     {
       const matriculaTutor = await createMatricula(
         lapso.id,
@@ -421,7 +421,7 @@ export async function postEstudiante(req, res) {
           error: "Error en la creacion del estudiante",
         });
       }
-    }
+    }*/
 
       await transporter.sendMail({
         from: "UTS San Cristobal",
