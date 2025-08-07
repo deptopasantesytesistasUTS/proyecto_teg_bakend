@@ -45,7 +45,17 @@ export async function createSemester(
   fechaB2,
   fechaB3,
   fechaBFinal,
-  fechaTitulos
+  fechaTitulos,
+  fechaInv2B1,
+  fechaInv2B2,
+  fechaInv2B3,
+  fechaInv2B4,
+  fechaInv2BFinal,
+  fechaTutInf1,
+  fechaTutInf2,
+  fechaTutInf3,
+  fechaTutInfFinal,
+  fechaGenCarta,
 ) {
   return prisma.lapsoAcac.create({
     data: {
@@ -57,6 +67,16 @@ export async function createSemester(
       fechaB3: fechaB3,
       fechaBFinal: fechaBFinal,
       fechaTitulos: fechaTitulos,
+      fechaInv2B1: fechaInv2B1,
+      fechaInv2B2: fechaInv2B2,
+      fechaInv2B3: fechaInv2B3,
+      fechaInv2B4: fechaInv2B4,
+      fechaInv2BFinal: fechaInv2BFinal,
+      fechaTutInf1: fechaTutInf1,
+      fechaTutInf2: fechaTutInf2,
+      fechaTutInf3: fechaTutInf3,
+      fechaTutInfFinal: fechaTutInfFinal,
+      fechaGenCarta: fechaGenCarta,
     },
   });
 }
@@ -267,9 +287,14 @@ export async function getUnidadesA(lapso) {
   return prisma.secciones.findMany({
     select: {
       idSeccion: true,
+      
       Personal: {
         select: {
           cedula: true,
+          nombre1: true,
+          nombre2: true,
+          apellido1: true,
+          apellido2: true,
           Users: {
             select: {
               correo: true,
@@ -279,6 +304,7 @@ export async function getUnidadesA(lapso) {
       },
       Materias: {
         select: {
+          categoria: true,
           Carreras: {
             select: {
               nombre: true,
@@ -291,6 +317,68 @@ export async function getUnidadesA(lapso) {
       lapsoAcac: lapso,
     },
   });
+}
+
+export async function getProfesorParaCurso(){
+  return prisma.users.findMany({
+    select:{
+      Personal:{
+        select:{
+          cedula: true,
+        }
+      },
+    },
+    where:{
+      role_id: 2,
+      status: "activo"
+    }
+  })
+}
+
+export async function createCourse(data) {
+  return prisma.secciones.create({
+    data: data
+  })
+}
+
+export async function getCarreraIDByNombre(nombre) {
+  return prisma.carreras.findFirst({
+    select:{
+      idCarrera: true
+    },
+    where:{
+      nombre: nombre,
+    }
+  })
+}
+
+export async function getMateriaID(carrera,categoria) {
+  let cat;
+
+  if(categoria == "Trabajo Especial de Grado") cat = materia_categoria.Trabajo_Especial_de_Grado
+  else if (categoria == "investigacion II") cat = materia_categoria.investigacion_II
+  else if (categoria == "Tutorias") cat = materia_categoria.Tutorias
+
+  return prisma.materias.findFirst({
+    select:{
+      idMateria: true
+    },
+    where:{
+      idCarrera: carrera,
+      categoria: cat,
+    }
+  })
+}
+
+export async function getDocentebyID(cedula) {
+  return prisma.personal.findFirst({
+    select:{
+      cedula: true,
+    },
+    where:{
+      cedula: cedula
+    }
+  })
 }
 
 export async function createJudge() {}

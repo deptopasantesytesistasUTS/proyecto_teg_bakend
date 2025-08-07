@@ -11,6 +11,8 @@ import {
   putTelf,
   putPassword,
   getUnidadesList,
+  getProfesorParaCursos,
+  postSeccion,
 } from "../controlers/controllers_admin.js";
 
 const router = express.Router();
@@ -58,7 +60,11 @@ router.get("/UnidadesListA",getUnidadesList)
 
 //estado de los borradores
 
+//obtener profesores para la lista de carreras
+router.get("/profesoresUnidades", getProfesorParaCursos);
 
+//crear curso
+router.post("/secciones",postSeccion);
 
 
 export default router;

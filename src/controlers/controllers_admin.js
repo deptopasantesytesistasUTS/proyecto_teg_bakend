@@ -1,3 +1,5 @@
+import { se } from "date-fns/locale";
+import { materia_categoria } from "@prisma/client";
 import {
   getSemesterByDate,
   createSemester,
@@ -17,6 +19,11 @@ import {
   createMatricula,
   deleteStudentbyCedula,
   getMateriaCategoria,
+  getProfesorParaCurso,
+  getCarreraIDByNombre,
+  getMateriaID,
+  createCourse,
+  getDocentebyID,
 } from "../models/models_admin.js";
 
 import { getUserByCorreo } from "../models/models_login.js";
@@ -43,6 +50,16 @@ export async function getSemesterInfo(req, res) {
         secondDraftDate: semester.fechaB2,
         thirdDraftDate: semester.fechaB3,
         finalDraftDate: semester.fechaBFinal,
+        inv2Borrador1: semester.fechaInv2B1,
+        inv2Borrador2: semester.fechaInv2B2,
+        inv2Borrador3: semester.fechaInv2B3,
+        inv2Borrador4: semester.fechaInv2B4,
+        inv2BorradorFinal: semester.fechaInv2BFinal,
+        tutInforme1: semester.fechaTutInf1,
+        tutInforme2: semester.fechaTutInf2,
+        tutInforme3: semester.fechaTutInf3,
+        tutInformeFinal: semester.fechaBFinal,
+        cartaDate: semester.fechaGenCarta,
       },
     });
   } catch (error) {
@@ -124,6 +141,26 @@ export async function createNewSemester(req, res) {
     // Convert it to an ISO string
     const titleDeliveryDate = endOftitleDeliveryDate.toISOString();
 
+    const inv2Borrador1 = convertFecha(newSemester.inv2Borrador1);
+
+    const inv2Borrador2 = convertFecha(newSemester.inv2Borrador2);
+
+    const inv2Borrador3 = convertFecha(newSemester.inv2Borrador3);
+
+    const inv2Borrador4 = convertFecha(newSemester.inv2Borrador4);
+
+    const inv2BorradorFinal = convertFecha(newSemester.inv2BorradorFinal) 
+
+    const tutInforme1 = convertFecha(newSemester.tutInforme1);
+
+    const tutInforme2 = convertFecha(newSemester.tutInforme2);
+
+    const tutInforme3 = convertFecha(newSemester.tutInforme3);
+
+    const tutInformeFinal = convertFecha(newSemester.tutInformeFinal);
+
+    const cartaDate = convertFecha(newSemester.cartaDate);
+
     const semester = await createSemester(
       parseInt(newSemester.id, 10),
       startDate,
@@ -132,7 +169,17 @@ export async function createNewSemester(req, res) {
       secondDraftDate,
       thirdDraftDate,
       finalDraftDate,
-      titleDeliveryDate
+      titleDeliveryDate,
+      inv2Borrador1,
+      inv2Borrador2,
+      inv2Borrador3,
+      inv2Borrador4,
+      inv2BorradorFinal,
+      tutInforme1,
+      tutInforme2,
+      tutInforme3,
+      tutInformeFinal,
+      cartaDate
     );
 
     if (!semester) {
@@ -172,6 +219,16 @@ export async function editSemester(req, res) {
       fechaB3: convertFecha(editSemester.thirdDraftDate),
       fechaBFinal: convertFecha(editSemester.finalDraftDate),
       fechaTitulos: convertFecha(editSemester.titleDeliveryDate),
+      fechaInv2B1: convertFecha(editSemester.inv2Borrador1),
+      fechaInv2B2: convertFecha(editSemester.inv2Borrador2),
+      fechaInv2B3: convertFecha(editSemester.inv2Borrador3),
+      fechaInv2B4: convertFecha(editSemester.inv2Borrador4),
+      fechaInv2BFinal: convertFecha(editSemester.inv2BorradorFinal),
+      fechaTutInf1: convertFecha(editSemester.tutInforme1),
+      fechaTutInf2: convertFecha(editSemester.tutInforme2),
+      fechaTutInf3: convertFecha(editSemester.tutInforme3),
+      fechaTutInfFinal: convertFecha(editSemester.tutInformeFinal),
+      fechaGenCarta: convertFecha(editSemester.cartaDate),
     });
 
     if (!editSemester) {
@@ -464,7 +521,133 @@ export async function getUnidadesList(req, res) {
     }
 
     res.json({
-      unidades: unidades,
+      unidades: unidades.map((u) => {
+        let cat;
+        if (u.Materias.categoria == materia_categoria.Trabajo_Especial_de_Grado)
+          cat = "Trabajo de Grado";
+        else if (u.Materias.categoria == materia_categoria.investigacion_II)
+          cat = "Investigación 2";
+        else if (u.Materias.categoria == materia_categoria.Tutorias)
+          cat = "Tutorias";
+        return {
+          nombre: cat,
+          carrera: u.Materias.Carreras.nombre,
+          profesores:
+            u.Personal.nombre1 +
+            " " +
+            u.Personal.nombre2 +
+            " " +
+            u.Personal.apellido1 +
+            " " +
+            u.Personal.apellido2,
+          estatus: "activa",
+          idSeccion: u.idSeccion
+        };
+      })
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function getProfesorParaCursos(req, res){
+  try {
+
+    const profesores = await getProfesorParaCurso();
+
+    if (!profesores) {
+      return res.status(400).json({
+        error: "Error en la obtencion de las profesores",
+      });
+    }
+
+    const resProfesores = profesores.map((profesor) => {
+      return {
+        idProfesor: profesor.Personal[0].cedula,
+        nombre:
+          profesor.Personal[0].nombre1 +
+          " " +
+          profesor.Personal[0].nombre2 +
+          " " +
+          profesor.Personal[0].apellido1 +
+          " " +
+          profesor.Personal[0].apellido2,
+      };
+    })
+
+    res.json({
+      profesores: resProfesores,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function postSeccion(req,res) {
+  const seccionInfo = req.body;
+
+  try {
+    if (!seccionInfo) {
+      return res.status(400).json({
+        error: "Datos incompletos o corruptos",
+      });
+    }
+
+    const carrera = await getCarreraIDByNombre(seccionInfo.carrera)
+
+    if (!carrera) {
+      return res.status(400).json({
+        error: "error al buscar la informacion de la carrera",
+      });
+    }
+
+    const materia = await getMateriaID(carrera.idCarrera,seccionInfo.nombre)
+
+    if (!materia) {
+      return res.status(400).json({
+        error: "error al buscar la informacion de la unidad",
+      });
+    }
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    if (!lapso) {
+      return res
+        .status(401)
+        .json({ error: "Error al obtener lapso academico" });
+    }
+
+    const profesores = seccionInfo.profesores.split(',');
+
+    const profesor = await getDocentebyID(parseInt(profesores[0]));
+
+    if(!profesor){
+      return res
+        .status(401)
+        .json({ error: "Error al obtener informacion del profesor" });
+    }
+
+    const seccion = createCourse({
+      lapsoAcad: lapso.id,
+      idSeccion: parseInt(lapso.id + "" + carrera.idCarrera + "" + materia.idMateria),
+      idDocente: profesor.cedula,
+      letra: seccionInfo.letraSeccion,
+      idMateria: materia.idMateria,
+    });
+
+    if (!seccion) {
+      return res.status(400).json({
+        error: "Error en la creacion de la seccion",
+      });
+    }
+
+    res.json({
+      ok: true,
     });
   } catch (error) {
     console.error(error);
