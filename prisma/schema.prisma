@@ -123,11 +123,11 @@ model Secciones {
   Jurados    Jurados[]
   Matricula  Matricula[]
   Receptores Receptores[]
+  Recursos   Recursos[]
   lapsoAcac  lapsoAcac?   @relation(fields: [lapsoAcad], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_lapso")
   Materias   Materias?    @relation(fields: [idMateria], references: [idMateria], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_materia")
   Personal   Personal?    @relation(fields: [idDocente], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_secciones_personal")
   Tutorias   Tutorias[]
-  Recursos   Recursos[]
 }
 
 model Tutorias {
@@ -148,21 +148,31 @@ model Users {
   role_id     Int
   status      String        @db.VarChar(20)
   Comunicados Comunicados[]
-  Estudiantes Estudiantes[]
+  Estudiantes Estudiantes?
   Personal    Personal[]
   Roles       Roles         @relation(fields: [role_id], references: [roleId], onDelete: NoAction, onUpdate: NoAction, map: "fk_role")
 }
 
 model lapsoAcac {
   id                                       Int         @id(map: "lapsoacac_id_pk")
-  fechaInicio                              DateTime?   @db.Date
-  fechaFinal                               DateTime?   @db.Date
+  fechaInicio                              DateTime    @db.Date
+  fechaFinal                               DateTime    @db.Date
   fechaB1                                  DateTime?   @db.Date
   fechaB2                                  DateTime?   @db.Date
   fechaB3                                  DateTime?   @db.Date
   fechaB4                                  DateTime?   @db.Date
   fechaBFinal                              DateTime?   @db.Date
   fechaTitulos                             DateTime?   @db.Date
+  fechaInv2B1                              DateTime?   @db.Date
+  fechaInv2B2                              DateTime?   @db.Date
+  fechaInv2B3                              DateTime?   @db.Date
+  fechaInv2B4                              DateTime?   @db.Date
+  fechaInv2BFinal                          DateTime?   @db.Date
+  fechaTutInf1                             DateTime?   @db.Date
+  fechaTutInf2                             DateTime?   @db.Date
+  fechaTutInf3                             DateTime?   @db.Date
+  fechaTutInfFinal                         DateTime?   @db.Date
+  fechaGenCarta                            DateTime?   @db.Date
   Matricula_Matricula_lapsoAcacTolapsoAcac Matricula[] @relation("Matricula_lapsoAcacTolapsoAcac")
   Secciones                                Secciones[]
 }
@@ -182,6 +192,16 @@ model tituloUni {
   tituloPer   tituloPer[]
 }
 
+model Recursos {
+  idRecurso   Int       @id @default(autoincrement())
+  idSeccion   Int
+  nombre      String    @db.VarChar(255)
+  tipo        String    @db.VarChar(50)
+  url         String    @db.VarChar(255)
+  descripcion String?   @db.VarChar(255)
+  Secciones   Secciones @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction)
+}
+
 enum categoria_enum {
   universitario
   tecnico
@@ -198,14 +218,4 @@ enum materia_categoria {
 enum user_status {
   activo
   inactivo
-}
-
-model Recursos {
-  idRecurso   Int      @id @default(autoincrement())
-  idSeccion   Int
-  nombre      String   @db.VarChar(255)
-  tipo        String   @db.VarChar(50)
-  url         String   @db.VarChar(255)
-  descripcion String?  @db.VarChar(255)
-  Secciones   Secciones @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction)
 }

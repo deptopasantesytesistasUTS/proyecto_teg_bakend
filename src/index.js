@@ -50,9 +50,10 @@ app.use(express.json());
 // Tus rutas
 app.use("/api", routes);
 app.use("/api", adminRoutes);
-app.use("/api", aulavirtualRoutes)
+app.use("/api", aulavirtualRoutes);
 app.use("/api", aulavirtualEstudiantesRoutes);
 app.use("/api", aulavirtualDocenteRoutes);
+app.use("/api", generalInfo);
 
 app.listen(PORT, () => {
   console.log(`Servidor backend escuchando en el puerto ${PORT}`);
