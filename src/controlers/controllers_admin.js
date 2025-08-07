@@ -404,14 +404,33 @@ export async function postEstudiante(req, res) {
       });
     }
 
-    await transporter.sendMail({
-      from: "UTS San Cristobal",
-      to: user.correo,
-      subject: `Usuario UTS San Cristobal`,
-      text: ` Buen Día ${newStudent.nombre1} ${newStudent.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
+    if (!estudiante.seccion_tutor !== "")
+    {
+      const matriculaTutor = await createMatricula(
+        lapso.id,
+        parseInt(estudiante.cedula, 10),
+        parseInt(estudiante.seccion_tutor)
+      );
+
+      if (!matriculaTutor) {
+        const deleteUser = await deleteUserByEmail(user.correo);
+        const deleteStudent = await deleteStudentbyCedula(
+          parseInt(estudiante.cedula, 10)
+        );
+        return res.status(400).json({
+          error: "Error en la creacion del estudiante",
+        });
+      }
+    }
+
+      await transporter.sendMail({
+        from: "UTS San Cristobal",
+        to: user.correo,
+        subject: `Usuario UTS San Cristobal`,
+        text: ` Buen Día ${newStudent.nombre1} ${newStudent.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
               Password: ${password}
           `,
-    });
+      });
 
     res.json({
       ok: true,

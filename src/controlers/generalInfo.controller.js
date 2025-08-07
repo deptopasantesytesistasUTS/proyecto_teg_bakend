@@ -41,6 +41,8 @@ export async function getSections(req, res) {
       return res.status(401).json({ error: "Error al obtener secciones" });
     }
 
+    console.log(secciones)
+
     res.json(secciones);
   } catch (error) {
     console.error(error);
@@ -68,6 +70,9 @@ export async function getSectionsTutor(req, res) {
     if (!secciones) {
       return res.status(401).json({ error: "Error al obtener secciones" });
     }
+
+    console.log("tutor")
+    console.log(secciones);
 
     res.json(secciones);
   } catch (error) {

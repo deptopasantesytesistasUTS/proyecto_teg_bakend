@@ -359,9 +359,13 @@ export async function getCarreraIDByNombre(nombre) {
 export async function getMateriaID(carrera,categoria) {
   let cat;
 
-  if(categoria == "Trabajo Especial de Grado") cat = materia_categoria.Trabajo_Especial_de_Grado
-  else if (categoria == "investigacion II") cat = materia_categoria.investigacion_II
-  else if (categoria == "Tutorias") cat = materia_categoria.Tutorias
+  console.log(categoria);
+
+  if(categoria == "Trabajo Especial de Grado") cat = materia_categoria.Trabajo_Especial_de_Grado;
+  else if (categoria == "investigación II") cat = materia_categoria.investigacion_II;
+  else if (categoria == "Tutorias") cat = materia_categoria.Tutorias;
+
+  console.log(cat);
 
   return prisma.materias.findFirst({
     select:{
@@ -404,7 +408,7 @@ export async function getDocentesAdmin() {
           status: true,
         }
       },
-    }
+    },
   })
 }
 

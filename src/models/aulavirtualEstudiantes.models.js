@@ -48,3 +48,18 @@ export async function getMateriasByUserId(userId) {
       idSeccion: m.Secciones.idSeccion
     }));
 }
+
+export async function getFechasInv2(lapso) {
+  return prisma.lapsoAcac.findFirst({
+    select: {
+      fechaInv2B1: true,
+      fechaInv2B2: true,
+      fechaInv2B3: true,
+      fechaInv2BFinal: true,
+      fechaEntInst: true,
+    },
+    where:{
+     
+    }
+  });
+}
