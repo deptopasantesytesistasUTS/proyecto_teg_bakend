@@ -13,8 +13,6 @@ export async function getCareers(req, res) {
       return res.status(401).json({ error: "Error al obtener carreras" });
     }
 
-    console.log(carreras);
-
     res.json(carreras);
   } catch (error) {
     console.error(error);

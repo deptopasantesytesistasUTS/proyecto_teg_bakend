@@ -24,9 +24,12 @@ import {
   getMateriaID,
   createCourse,
   getDocentebyID,
+  getDocentesAdmin,
+  createDocente,
 } from "../models/models_admin.js";
 
 import { getUserByCorreo } from "../models/models_login.js";
+import transporter from "../../config/nodemailer.js";
 
 export async function getSemesterInfo(req, res) {
   const { fecha } = req.params;
@@ -85,9 +88,6 @@ export async function createNewSemester(req, res) {
       newSemester.startDate
     );
     const comprobacionFechaFinal = await getSemesterByDate(newSemester.endDate);
-
-    console.log(comprobacionFechaInicio);
-    console.log(comprobacionFechaFinal);
 
     if (comprobacionFechaFinal || comprobacionFechaInicio) {
       return res.status(400).json({
@@ -404,6 +404,15 @@ export async function postEstudiante(req, res) {
       });
     }
 
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.correo,
+      subject: `Usuario UTS San Cristobal`,
+      text: ` Buen Día ${newStudent.nombre1} ${newStudent.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
+              Password: ${password}
+          `,
+    });
+
     res.json({
       ok: true,
     });
@@ -432,9 +441,6 @@ export async function getStudentListAdmin(req, res) {
         error: "Error en la obtencion del listado de estudiantes",
       });
     }
-
-    console.log("estudiantes");
-    console.log(estudiantes);
 
     res.json({
       estudiantes: estudiantes.map((est) => {
@@ -541,7 +547,8 @@ export async function getUnidadesList(req, res) {
             " " +
             u.Personal.apellido2,
           estatus: "activa",
-          idSeccion: u.idSeccion
+          idSeccion: u.idSeccion,
+          correoDocente: u.Personal.Users.correo,
         };
       })
     });
@@ -563,6 +570,7 @@ export async function getProfesorParaCursos(req, res){
     }
 
     const resProfesores = profesores.map((profesor) => {
+      console.log(profesor)
       return {
         idProfesor: profesor.Personal[0].cedula,
         nombre:
@@ -632,12 +640,35 @@ export async function postSeccion(req,res) {
         .json({ error: "Error al obtener informacion del profesor" });
     }
 
+    const unidades = await getUnidadesA(lapso);
+    console.log(lapso);
+
     const seccion = createCourse({
-      lapsoAcad: lapso.id,
-      idSeccion: parseInt(lapso.id + "" + carrera.idCarrera + "" + materia.idMateria),
-      idDocente: profesor.cedula,
+      idSeccion: parseInt(
+        lapso.id +
+          "" +
+          carrera.idCarrera +
+          "" +
+          materia.idMateria +
+          "" +
+          unidades.length
+      ),
+      lapsoAcac: {
+        connect: {
+          id: lapso.id, // Conecta la sección al lapso académico con el ID 20252
+        },
+      },
+      Personal: {
+        connect: {
+          cedula: profesor.cedula, // <-- Corregido. Usa la propiedad de relación 'Personal'
+        },
+      },
       letra: seccionInfo.letraSeccion,
-      idMateria: materia.idMateria,
+      Materias: {
+        connect: {
+          idMateria: materia.idMateria, // <-- Corregido. Usa la propiedad de relación 'Materias'
+        },
+      },
     });
 
     if (!seccion) {
@@ -645,6 +676,97 @@ export async function postSeccion(req,res) {
         error: "Error en la creacion de la seccion",
       });
     }
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function getDocentes(req, res) {
+  try {
+    const profesores = await getDocentesAdmin();
+
+    if (!profesores) {
+      return res.status(400).json({
+        error: "Error en la obtencion de las profesores",
+      });
+    }
+
+    const resProfesores = profesores.map((profesor) => {
+      console.log(profesor);
+      return {
+        cedula: profesor.cedula,
+        correo: profesor.Users.correo,
+        estatus: profesor.Users.status,
+        nombre:
+          profesor.nombre1 +
+          " " +
+          profesor.nombre2 +
+          " " +
+          profesor.apellido1 +
+          " " +
+          profesor.apellido2,
+      };
+    });
+
+    res.json({
+      profesores: resProfesores,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function postDocente(req, res) {
+  const docente = req.body;
+
+  try {
+    const password = generarCadenaAleatoria(8);
+
+    if (!docente.email || !password) {
+      return res.status(400).json({
+        error: "Correo y contraseña son requeridos",
+      });
+    }
+
+    const user = await createUser(docente.email, password, 2);
+
+    if (!user) {
+      return res.status(400).json({
+        error: "Error en la creacion del usuario",
+      });
+    }
+
+    const newTeacher = await createDocente(
+      parseInt(docente.id),
+      docente.firstName,
+      docente.secondName,
+      docente.firstLastName,
+      docente.secondLastName,
+      docente.telf,
+      user.userId,
+    );
+
+    if (!newTeacher) {
+      const deleteUser = await deleteUserByEmail(user.correo);
+      return res.status(400).json({
+        error: "Error en la creacion del docente",
+      });
+    }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.correo,
+      subject: `Usuario UTS San Cristobal`,
+      text: ` Buen Día ${newTeacher.nombre1} ${newTeacher.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
+              Password: ${password}
+          `,
+    });
 
     res.json({
       ok: true,

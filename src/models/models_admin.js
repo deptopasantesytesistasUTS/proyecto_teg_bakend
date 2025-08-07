@@ -321,18 +321,22 @@ export async function getUnidadesA(lapso) {
 
 export async function getProfesorParaCurso(){
   return prisma.users.findMany({
-    select:{
-      Personal:{
-        select:{
+    select: {
+      Personal: {
+        select: {
           cedula: true,
-        }
+          nombre1: true,
+          nombre2: true,
+          apellido1: true,
+          apellido2: true,
+        },
       },
     },
-    where:{
+    where: {
       role_id: 2,
-      status: "activo"
-    }
-  })
+      status: "activo",
+    },
+  });
 }
 
 export async function createCourse(data) {
@@ -374,11 +378,56 @@ export async function getDocentebyID(cedula) {
   return prisma.personal.findFirst({
     select:{
       cedula: true,
+      Users:{
+        select:{
+          correo: true,
+        }
+      }
     },
     where:{
       cedula: cedula
     }
   })
+}
+
+export async function getDocentesAdmin() {
+  return prisma.personal.findMany({
+    select:{
+      cedula: true,
+      nombre1: true,
+      nombre2: true,
+      apellido1: true,
+      apellido2: true,
+      Users:{
+        select:{
+          correo: true,
+          status: true,
+        }
+      },
+    }
+  })
+}
+
+export async function createDocente(
+  cedula,
+  nombre1,
+  nombre2,
+  apellido1,
+  apellido2,
+  telf,
+  userID,
+) {
+  return prisma.personal.create({
+    data: {
+      cedula: cedula,
+      nombre1: nombre1,
+      nombre2: nombre2,
+      apellido1: apellido1,
+      apellido2: apellido2,
+      userID: userID,
+      telf: telf,
+    },
+  });
 }
 
 export async function createJudge() {}

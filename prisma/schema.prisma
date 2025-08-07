@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("DATABASE_URL")
   shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
@@ -47,15 +47,16 @@ model Estudiantes {
   Asistencias Asistencias[]
   Carreras    Carreras?     @relation(fields: [idCarrera], references: [idCarrera], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_carrera")
   Users       Users?        @relation(fields: [idUsuario], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_usuario")
+  Jurados     Jurados[]
   Matricula   Matricula[]
 }
 
 model Jurados {
-  id           Int        @id @default(autoincrement())
-  cedulaJurado Int?
-  idSeccion    Int?
-  Personal     Personal?  @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
-  Secciones    Secciones? @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_seccion")
+  id               Int          @id @default(autoincrement())
+  cedulaJurado     Int?
+  cedulaEstudiante Int?
+  Estudiantes      Estudiantes? @relation(fields: [cedulaEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_cedula")
+  Personal         Personal?    @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
 }
 
 model Materias {
@@ -121,7 +122,6 @@ model Secciones {
   letra      String?      @db.Char(1)
   idDocente  Int?
   lapsoAcad  Int?
-  Jurados    Jurados[]
   Matricula  Matricula[]
   Receptores Receptores[]
   Recursos   Recursos[]

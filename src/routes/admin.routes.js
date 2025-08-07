@@ -13,6 +13,8 @@ import {
   getUnidadesList,
   getProfesorParaCursos,
   postSeccion,
+  getDocentes,
+  postDocente,
 } from "../controlers/controllers_admin.js";
 
 const router = express.Router();
@@ -62,6 +64,12 @@ router.get("/UnidadesListA",getUnidadesList)
 
 //obtener profesores para la lista de carreras
 router.get("/profesoresUnidades", getProfesorParaCursos);
+
+//obtener Listado de profesores
+router.get("/docentesAdmin",getDocentes)
+
+//crear docente
+router.post("/docentesAdmin",postDocente)
 
 //crear curso
 router.post("/secciones",postSeccion);
