@@ -2,6 +2,7 @@ import express from "express";
 import routes from "./routes/routes_login.js";
 import adminRoutes from "./routes/admin.routes.js";
 import generalInfo from "./routes/generalInfo.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 import prisma from "./prisma.js";
 import cors from "cors";
 import { PORT } from "./config.js";
@@ -50,6 +51,7 @@ app.use(express.json());
 // Tus rutas
 app.use("/api", routes);
 app.use("/api", adminRoutes);
+app.use("/api", dashboardRoutes);
 app.use("/api", aulavirtualRoutes)
 app.use("/api", aulavirtualEstudiantesRoutes);
 app.use("/api", aulavirtualDocenteRoutes);
