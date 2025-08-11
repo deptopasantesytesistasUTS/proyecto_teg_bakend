@@ -28,6 +28,7 @@ export async function getMateriaByIdWithAulaVirtual(idMateria) {
     where: { idMateria: Number(idMateria) },
     include: {
       Secciones: true,
+      Carreras: true,
     },
   });
 }

@@ -37,7 +37,71 @@ router.get("/estudiantesA",getStudentListAdmin)
 //getEstudiante
 
 //getStudentProfile
-router.get("estudiantePerfil/:cedula",getStudentProfile)
+router.get("/estudiantePerfil/:cedula",getStudentProfile)
+
+//getStudentProfileSimple - versión simplificada para pruebas
+router.get("/estudiantePerfilSimple/:cedula", async (req, res) => {
+  const { cedula } = req.params;
+  console.log("🔍 getStudentProfileSimple - Cedula recibida:", cedula);
+  
+  try {
+    const { getStudentById } = await import("../models/models_admin.js");
+    const estudiante = await getStudentById(cedula);
+    
+    if (!estudiante) {
+      return res.status(404).json({
+        error: "Estudiante no encontrado",
+        cedula: cedula
+      });
+    }
+    
+    res.json({
+      estudiante: estudiante,
+      message: "Datos básicos del estudiante"
+    });
+  } catch (error) {
+    console.error("🔍 getStudentProfileSimple - Error:", error);
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      details: error.message 
+    });
+  }
+});
+
+//getAllStudents - para listar todos los estudiantes y verificar datos
+router.get("/todosEstudiantes", async (req, res) => {
+  try {
+    const { prisma } = await import("../prisma.js");
+    const estudiantes = await prisma.estudiantes.findMany({
+      select: {
+        cedula: true,
+        nombre1: true,
+        nombre2: true,
+        apellido1: true,
+        apellido2: true,
+        telf: true,
+        Carreras: {
+          select: {
+            nombre: true,
+          },
+        },
+      },
+      take: 10 // Solo los primeros 10 para no sobrecargar
+    });
+    
+    res.json({
+      estudiantes: estudiantes,
+      total: estudiantes.length,
+      message: "Lista de estudiantes (primeros 10)"
+    });
+  } catch (error) {
+    console.error("🔍 getAllStudents - Error:", error);
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      details: error.message 
+    });
+  }
+});
 
 //putDatosPersonales
 router.put("/estudianteData",putDatosPersonales)

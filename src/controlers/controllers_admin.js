@@ -490,36 +490,48 @@ export async function getStudentListAdmin(req, res) {
 
 export async function getStudentProfile(req, res) {
   const { cedula } = req.params;
+  console.log("🔍 getStudentProfile - Cedula recibida:", cedula);
+  console.log("🔍 getStudentProfile - Tipo de cedula:", typeof cedula);
+  
   try {
     const estudiante = await getStudentById(cedula);
+    console.log("🔍 getStudentProfile - Estudiante encontrado:", estudiante);
 
     if (!estudiante) {
-      return res.status(400).json({
-        error: "Error en la obtencion del estudiante",
+      console.log("🔍 getStudentProfile - Estudiante no encontrado");
+      return res.status(404).json({
+        error: "Estudiante no encontrado",
       });
     }
 
     const today = new Date();
     const isoToday = today.toISOString();
+    console.log("🔍 getStudentProfile - Fecha actual:", isoToday);
 
     const lapso = await getSemesterByDate(isoToday);
+    console.log("🔍 getStudentProfile - Lapso encontrado:", lapso);
 
     if (!lapso) {
+      console.log("🔍 getStudentProfile - No se encontró lapso académico");
       return res
         .status(401)
         .json({ error: "Error al obtener lapso academico" });
     }
 
     const matricula = await getMatriculaInfo(cedula, lapso);
+    console.log("🔍 getStudentProfile - Matrícula encontrada:", matricula);
 
     if (!matricula) {
+      console.log("🔍 getStudentProfile - No se encontró matrícula");
       return res.status(401).json({ error: "Error al obtener la matricula" });
     }
 
-    res.json({
+    const response = {
       estudiante: estudiante,
       matricula: matricula,
-    });
+    };
+    console.log("🔍 getStudentProfile - Respuesta exitosa:", response);
+    res.json(response);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message || "Error en el servidor" });
