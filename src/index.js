@@ -8,6 +8,7 @@ import cors from "cors";
 import { PORT } from "./config.js";
 import aulavirtualRoutes from "./routes/aulavirtual.routes.js";
 import aulavirtualEstudiantesRoutes from "./routes/aulavirtualEstudiantes.routes.js";
+import superUserRoutes from "./routes/superUser.routes.js";
 import aulavirtualDocenteRoutes from "./routes/aulavirtualDocente.routes.js";
 const app = express();
 
@@ -56,6 +57,7 @@ app.use("/api", aulavirtualRoutes);
 app.use("/api", aulavirtualEstudiantesRoutes);
 app.use("/api", aulavirtualDocenteRoutes);
 app.use("/api", generalInfo);
+app.use("/api", superUserRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor backend escuchando en el puerto ${PORT}`);
