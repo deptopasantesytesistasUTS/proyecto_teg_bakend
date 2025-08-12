@@ -3,6 +3,7 @@ import { generarToken } from "../authentication.js";
 import { getUserByCorreo, getUserById, getUserProfileAdm, getUserProfileDoc, getUserProfileEst, putPasswordbyEmail, updateCorreo } from "../models/models_login.js";
 import { editUserbyCedulaE } from "../models/models_admin.js";
 import bcryptjs from "bcryptjs";
+import transporter from "../../config/nodemailer.js";
 
 export async function loginUser(req, res) {
   const { correo, password } = req.body;
@@ -140,7 +141,7 @@ export async function UpdatePassword(req, res) {
 
     await transporter.sendMail({
       from: "UTS San Cristobal",
-      to: user.correo,
+      to: editedUser.correo,
       subject: `Cambio de Contraseña Usuario UTS San Cristobal`,
       text: ` Buen Día se le informa que el usuario asociado a este correo ha realizado un cambio de contraseña, si desconoce dicha operacion por favor ponerse en contacto con la
       coordinación
