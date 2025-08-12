@@ -1,6 +1,8 @@
 import prisma from "../prisma.js";
 import { generarToken } from "../authentication.js";
-import { getUserByCorreo, getUserById, getUserProfileAdm, getUserProfileDoc, getUserProfileEst, updateCorreo } from "../models/models_login.js";
+import { getUserByCorreo, getUserById, getUserProfileAdm, getUserProfileDoc, getUserProfileEst, putPasswordbyEmail, updateCorreo } from "../models/models_login.js";
+import { editUserbyCedulaE } from "../models/models_admin.js";
+import bcryptjs from "bcryptjs";
 
 export async function loginUser(req, res) {
   const { correo, password } = req.body;
@@ -113,5 +115,43 @@ export async function putProfile(req,res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error en el servidor" });
+  }
+}
+
+export async function UpdatePassword(req, res) {
+  const { correo, password } = req.body;
+  if (!correo) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    console.log(hashedPassword);
+
+    const editedUser = await putPasswordbyEmail(correo);
+
+    if (!editedUser) {
+      return res.status(400).json({
+        error: "El usuario no se pudo editar",
+      });
+    }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.correo,
+      subject: `Cambio de Contraseña Usuario UTS San Cristobal`,
+      text: ` Buen Día se le informa que el usuario asociado a este correo ha realizado un cambio de contraseña, si desconoce dicha operacion por favor ponerse en contacto con la
+      coordinación
+        `,
+    });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
   }
 }

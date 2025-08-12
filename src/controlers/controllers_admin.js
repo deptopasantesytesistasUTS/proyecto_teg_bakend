@@ -27,6 +27,7 @@ import {
   getDocentesAdmin,
   createDocente,
 } from "../models/models_admin.js";
+import bcryptjs from "bcryptjs";
 
 import { getUserByCorreo } from "../models/models_login.js";
 import transporter from "../../config/nodemailer.js";
@@ -827,3 +828,4 @@ export async function postDocente(req, res) {
     res.status(500).json({ error: error.message || "Error en el servidor" });
   }
 }
+

@@ -1,3 +1,4 @@
+import { date } from "zod/v4";
 import prisma from "../prisma.js";
 
 export async function getUserByCorreo(correo) {
@@ -119,4 +120,13 @@ export async function updateProfilePer(cedula, updateData) {
   });
 }
 
-
+export async function putPasswordbyEmail(correo,password) {
+  return prisma.users.update({
+    where: {
+      correo: correo
+    },
+    data: {
+      password: password,
+    },
+  })
+}
