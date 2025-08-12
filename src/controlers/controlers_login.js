@@ -1,6 +1,9 @@
 import prisma from "../prisma.js";
 import { generarToken } from "../authentication.js";
-import { getUserByCorreo, getUserById, getUserProfileAdm, getUserProfileDoc, getUserProfileEst, updateCorreo } from "../models/models_login.js";
+import { getUserByCorreo, getUserById, getUserProfileAdm, getUserProfileDoc, getUserProfileEst, putPasswordbyEmail, updateCorreo } from "../models/models_login.js";
+import { editUserbyCedulaE } from "../models/models_admin.js";
+import bcryptjs from "bcryptjs";
+import transporter from "../../config/nodemailer.js";
 
 export async function loginUser(req, res) {
   const { correo, password } = req.body;
@@ -12,9 +15,12 @@ export async function loginUser(req, res) {
     if (!user) {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }
+    const isMatch = await bcryptjs.compare(password, user.password);
     // Comparación simple, en producción usa hash
-    if (user.password !== password) {
-      return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ error: "Usuario o contraseña incorrectos" });
     }
     // Incluye el rol en el token
     const token = generarToken({ userId: user.userId, role: user.role_id, correo: user.correo });
@@ -110,5 +116,43 @@ export async function putProfile(req,res) {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Error en el servidor" });
+  }
+}
+
+export async function UpdatePassword(req, res) {
+  const { correo, password } = req.body;
+  if (!correo) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    console.log(hashedPassword);
+
+    const editedUser = await putPasswordbyEmail(correo);
+
+    if (!editedUser) {
+      return res.status(400).json({
+        error: "El usuario no se pudo editar",
+      });
+    }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: editedUser.correo,
+      subject: `Cambio de Contraseña Usuario UTS San Cristobal`,
+      text: ` Buen Día se le informa que el usuario asociado a este correo ha realizado un cambio de contraseña, si desconoce dicha operacion por favor ponerse en contacto con la
+      coordinación
+        `,
+    });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
   }
 }
