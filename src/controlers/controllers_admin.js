@@ -320,8 +320,11 @@ export async function putPassword(req, res) {
   try {
     const password = generarCadenaAleatoria(8);
 
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
     const editedStudent = await editUserbyCedulaE(cedula, {
-      password: password,
+      password: hashedPassword,
     });
 
     if (!editedStudent) {
@@ -329,6 +332,15 @@ export async function putPassword(req, res) {
         error: "El estudiante no se pudo editar",
       });
     }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.correo,
+      subject: `Restaurar Contraseña Usuario UTS San Cristobal`,
+      text: ` Buen Día ${editedStudent.nombre1} ${editedStudent.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
+            Password: ${password}
+        `,
+    });
 
     res.json({
       ok: true,
@@ -351,7 +363,10 @@ export async function postEstudiante(req, res) {
       });
     }
 
-    const user = await createUser(estudiante.correo, password, 3);
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    const user = await createUser(estudiante.correo, hashedPassword, 3);
 
     if (!user) {
       return res.status(400).json({
@@ -767,7 +782,10 @@ export async function postDocente(req, res) {
       });
     }
 
-    const user = await createUser(docente.email, password, 2);
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    const user = await createUser(docente.email, hashedPassword, 2);
 
     if (!user) {
       return res.status(400).json({

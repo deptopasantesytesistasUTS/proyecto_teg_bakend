@@ -12,9 +12,12 @@ export async function loginUser(req, res) {
     if (!user) {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }
+    const isMatch = await bcryptjs.compare(password, user.password);
     // Comparación simple, en producción usa hash
-    if (user.password !== password) {
-      return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ error: "Usuario o contraseña incorrectos" });
     }
     // Incluye el rol en el token
     const token = generarToken({ userId: user.userId, role: user.role_id, correo: user.correo });
