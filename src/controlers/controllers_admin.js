@@ -59,11 +59,11 @@ export async function getSemesterInfo(req, res) {
         inv2Borrador3: semester.fechaInv2B3,
         inv2Borrador4: semester.fechaInv2B4,
         inv2BorradorFinal: semester.fechaInv2BFinal,
-        tutInforme1: semester.fechaTutInf1,
-        tutInforme2: semester.fechaTutInf2,
-        tutInforme3: semester.fechaTutInf3,
-        tutInformeFinal: semester.fechaBFinal,
+        tutInicio: semester.fechaTutIni,
+        tutFinal: semester.fechaTutFin,
+        urlCronograma: semester.urlCronograma,
         cartaDate: semester.fechaGenCarta,
+        fechaEntInst: semester.fechaEntInst,
       },
     });
   } catch (error) {
@@ -152,15 +152,13 @@ export async function createNewSemester(req, res) {
 
     const inv2BorradorFinal = convertFecha(newSemester.inv2BorradorFinal) 
 
-    const tutInforme1 = convertFecha(newSemester.tutInforme1);
+    const tutInicio = convertFecha(newSemester.tutInicio);
 
-    const tutInforme2 = convertFecha(newSemester.tutInforme2);
-
-    const tutInforme3 = convertFecha(newSemester.tutInforme3);
-
-    const tutInformeFinal = convertFecha(newSemester.tutInformeFinal);
+    const tutFin = convertFecha(newSemester.tutFinal);
 
     const cartaDate = convertFecha(newSemester.cartaDate);
+    
+    const fechaEntInst = convertFecha(newSemester.fechaEntInst);
 
     const semester = await createSemester(
       parseInt(newSemester.id, 10),
@@ -176,11 +174,11 @@ export async function createNewSemester(req, res) {
       inv2Borrador3,
       inv2Borrador4,
       inv2BorradorFinal,
-      tutInforme1,
-      tutInforme2,
-      tutInforme3,
-      tutInformeFinal,
-      cartaDate
+      tutInicio,
+      tutFin,
+      newSemester.urlCronograma,
+      cartaDate,
+      fechaEntInst
     );
 
     if (!semester) {
@@ -225,11 +223,11 @@ export async function editSemester(req, res) {
       fechaInv2B3: convertFecha(editSemester.inv2Borrador3),
       fechaInv2B4: convertFecha(editSemester.inv2Borrador4),
       fechaInv2BFinal: convertFecha(editSemester.inv2BorradorFinal),
-      fechaTutInf1: convertFecha(editSemester.tutInforme1),
-      fechaTutInf2: convertFecha(editSemester.tutInforme2),
-      fechaTutInf3: convertFecha(editSemester.tutInforme3),
-      fechaTutInfFinal: convertFecha(editSemester.tutInformeFinal),
+      fechaTutIni: convertFecha(editSemester.tutInicio),
+      fechaTutFin: convertFecha(editSemester.tutFinal),
+      urlCronograma: editSemester.urlCronograma,
       fechaGenCarta: convertFecha(editSemester.cartaDate),
+      fechaEntInst: convertFecha(editSemester.fechaEntInst),
     });
 
     if (!editSemester) {

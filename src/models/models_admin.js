@@ -51,11 +51,11 @@ export async function createSemester(
   fechaInv2B3,
   fechaInv2B4,
   fechaInv2BFinal,
-  fechaTutInf1,
-  fechaTutInf2,
-  fechaTutInf3,
-  fechaTutInfFinal,
+  fechaTutIni,
+  fechaTutFin,
+  urlCronograma,
   fechaGenCarta,
+  fechaEntInst,
 ) {
   return prisma.lapsoAcac.create({
     data: {
@@ -72,11 +72,11 @@ export async function createSemester(
       fechaInv2B3: fechaInv2B3,
       fechaInv2B4: fechaInv2B4,
       fechaInv2BFinal: fechaInv2BFinal,
-      fechaTutInf1: fechaTutInf1,
-      fechaTutInf2: fechaTutInf2,
-      fechaTutInf3: fechaTutInf3,
-      fechaTutInfFinal: fechaTutInfFinal,
+      fechaTutIni: fechaTutIni,
+      fechaTutFin: fechaTutFin,
+      urlCronograma: urlCronograma,
       fechaGenCarta: fechaGenCarta,
+      fechaEntInst: fechaEntInst,
     },
   });
 }

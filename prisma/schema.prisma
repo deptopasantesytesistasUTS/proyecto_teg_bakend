@@ -169,12 +169,11 @@ model lapsoAcac {
   fechaInv2B3                              DateTime?   @db.Date
   fechaInv2B4                              DateTime?   @db.Date
   fechaInv2BFinal                          DateTime?   @db.Date
-  fechaTutInf1                             DateTime?   @db.Date
-  fechaTutInf2                             DateTime?   @db.Date
-  fechaTutInf3                             DateTime?   @db.Date
-  fechaTutInfFinal                         DateTime?   @db.Date
+  fechaTutIni                              DateTime?   @db.Date
+  fechaTutFin                              DateTime?   @db.Date
   fechaGenCarta                            DateTime?   @db.Date
   fechaEntInst                             DateTime?   @db.Date
+  urlCronograma                            String?     @db.VarChar
   Matricula_Matricula_lapsoAcacTolapsoAcac Matricula[] @relation("Matricula_lapsoAcacTolapsoAcac")
   Secciones                                Secciones[]
 }

@@ -131,7 +131,7 @@ export async function UpdatePassword(req, res) {
 
     console.log(hashedPassword);
 
-    const editedUser = await putPasswordbyEmail(correo);
+    const editedUser = await putPasswordbyEmail(correo, hashedPassword);
 
     if (!editedUser) {
       return res.status(400).json({
