@@ -15,6 +15,7 @@ import {
   postSeccion,
   getDocentes,
   postDocente,
+  deleteMatricula,
 } from "../controlers/controllers_admin.js";
 
 const router = express.Router();
@@ -137,6 +138,9 @@ router.post("/docentesAdmin",postDocente)
 
 //crear curso
 router.post("/secciones",postSeccion);
+
+//borrar Matriculas
+router.delete("/matriculas",deleteMatricula)
 
 
 export default router;

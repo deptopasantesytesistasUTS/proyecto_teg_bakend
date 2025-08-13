@@ -241,7 +241,7 @@ export async function editStudentbyCedula(cedula, updateData) {
 
 
 export async function getStudentListA(lapso) {
-  return prisma.matricula.findMany({
+  /*return prisma.matricula.findMany({
     select: {
       Estudiantes: {
         select: {
@@ -274,11 +274,48 @@ export async function getStudentListA(lapso) {
       },
     },
     where: {
-      // Filter Estudiantes who have at least one Matricula recor
+      lapsoAcac: lapso.id,
+    },
+  });*/
 
-      // And that Matricula record must be linked to a specific lapsoAcac
-      // The 'lapsoAcac' field on Matricula directly holds the ID
-      lapsoAcac: lapso.id, // Assuming yourLapsoAcacId is the integer ID of the academic period
+  return prisma.estudiantes.findMany({
+    select: {
+      cedula: true,
+      nombre1: true,
+      nombre2: true,
+      apellido1: true,
+      apellido2: true,
+      Carreras: {
+        select: {
+          nombre: true,
+        },
+      },
+      Users: {
+        select: {
+          status: true,
+          correo: true,
+        },
+      },
+      Matricula: {
+        select: {
+          Secciones: {
+            select: {
+              Materias: {
+                select: {
+                  categoria: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    where: {
+      Matricula: {
+        some: {
+          lapsoAcac: lapso.id,
+        },
+      },
     },
   });
 }
@@ -432,6 +469,41 @@ export async function createDocente(
       telf: telf,
     },
   });
+}
+
+export async function getUserIdByCedulaE(cedula) {
+  return prisma.estudiantes.findFirst({
+    where:{
+      cedula: cedula
+    },
+    select:{
+      Users:{
+        select:{
+          userId: true
+        }
+      }
+    }
+  })
+}
+
+export async function setUserActive(id,active) {
+  return prisma.users.update({
+    where:{
+      userId: id
+    },
+    data:{
+      status: active
+    }
+  })
+}
+
+export async function deleteMatriculaEst(lapso,cedula) {
+  return prisma.matricula.deleteMany({
+    where:{
+      idEstudiante: cedula,
+      lapsoAcac: lapso,
+    }
+  })
 }
 
 export async function createJudge() {}

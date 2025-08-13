@@ -26,10 +26,13 @@ import {
   getDocentebyID,
   getDocentesAdmin,
   createDocente,
+  getUserIdByCedulaE,
+  setUserActive,
+  deleteMatriculaEst,
 } from "../models/models_admin.js";
 import bcryptjs from "bcryptjs";
 
-import { getUserByCorreo } from "../models/models_login.js";
+import { getUserByCorreo, updateCorreo } from "../models/models_login.js";
 import transporter from "../../config/nodemailer.js";
 
 export async function getSemesterInfo(req, res) {
@@ -362,27 +365,40 @@ export async function postEstudiante(req, res) {
       });
     }
 
+    let newStudent;
+    let user;
+
     const salt = await bcryptjs.genSalt(10);
     const hashedPassword = await bcryptjs.hash(password, salt);
 
-    const user = await createUser(estudiante.correo, hashedPassword, 3);
+    const estudianteAux = await getStudentById(parseInt(estudiante.cedula, 10));
 
-    if (!user) {
-      return res.status(400).json({
-        error: "Error en la creacion del usuario",
-      });
+    if (estudianteAux) {
+      newStudent = estudianteAux;
+    } else{
+
+      user = await createUser(estudiante.correo, hashedPassword, 3);
+
+      if (!user) {
+        return res.status(400).json({
+          error: "Error en la creacion del usuario",
+        });
+      }
+
+      newStudent = await createStudent(
+        parseInt(estudiante.cedula, 10),
+        estudiante.nombre1,
+        estudiante.nombre2,
+        estudiante.apellido1,
+        estudiante.apellido2,
+        estudiante.telf,
+        parseInt(estudiante.carrera, 10),
+        user.userId
+      );
     }
 
-    const newStudent = await createStudent(
-      parseInt(estudiante.cedula, 10),
-      estudiante.nombre1,
-      estudiante.nombre2,
-      estudiante.apellido1,
-      estudiante.apellido2,
-      estudiante.telf,
-      parseInt(estudiante.carrera, 10),
-      user.userId
-    );
+    
+    
 
     if (!newStudent) {
       const deleteUser = await deleteUserByEmail(user.correo);
@@ -439,7 +455,8 @@ export async function postEstudiante(req, res) {
       }
     }
 
-      await transporter.sendMail({
+
+    if(user) await transporter.sendMail({
         from: "UTS San Cristobal",
         to: user.correo,
         subject: `Usuario UTS San Cristobal`,
@@ -481,18 +498,20 @@ export async function getStudentListAdmin(req, res) {
       estudiantes: estudiantes.map((est) => {
         return {
           nombre:
-            est.Estudiantes.nombre1 +
+            est.nombre1 +
             " " +
-            est.Estudiantes.nombre2 +
+            est.nombre2 +
             " " +
-            est.Estudiantes.apellido1 +
+            est.apellido1 +
             " " +
-            est.Estudiantes.apellido2,
-          cedula: est.Estudiantes.cedula,
-          carrera: est.Estudiantes.Carreras.nombre,
-          materia: est.Secciones.Materias.categoria,
-          status: est.Estudiantes.Users.status,
-          email: est.Estudiantes.Users.correo,
+            est.apellido2,
+          cedula: est.cedula,
+          carrera: est.Carreras.nombre,
+          materia: est.Matricula.map((mat) =>{
+            return mat.Secciones.Materias.categoria
+          }),
+          status: est.Users.status,
+          email: est.Users.correo,
         };
       }),
     });
@@ -817,6 +836,39 @@ export async function postDocente(req, res) {
               Password: ${password}
           `,
     });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function deleteMatricula(req,res){
+  const estudiante = req.body;
+
+  try {
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    if (!lapso) {
+      return res
+        .status(401)
+        .json({ error: "Error al obtener lapso academico" });
+    }
+
+    const user = await getUserIdByCedulaE(parseInt(estudiante.cedula));
+
+    if(user){
+      setUserActive(user.Users.userId,"inactivo");
+    }
+
+    await deleteMatriculaEst(lapso.id,parseInt(estudiante.cedula))
 
     res.json({
       ok: true,
