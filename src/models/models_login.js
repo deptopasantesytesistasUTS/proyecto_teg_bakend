@@ -130,3 +130,25 @@ export async function putPasswordbyEmail(correo,password) {
     },
   })
 }
+
+export async function putImagen(userId,image) {
+  return prisma.users.update({
+    where:{
+      userId: userId
+    },
+    data:{
+      imagen: image
+    }
+  })
+}
+
+export async function getProfileImageDB(userId) {
+  return prisma.users.findFirst({
+    where: {
+      userId: userId,
+    },
+    select:{
+      imagen: true
+    }
+  });
+}

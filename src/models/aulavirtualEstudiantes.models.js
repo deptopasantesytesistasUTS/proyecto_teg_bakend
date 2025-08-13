@@ -59,7 +59,7 @@ export async function getFechasInv2(lapso) {
       fechaEntInst: true,
     },
     where:{
-     
+     id: lapso
     }
   });
 }
