@@ -527,7 +527,7 @@ export async function getStudentProfile(req, res) {
   console.log("🔍 getStudentProfile - Tipo de cedula:", typeof cedula);
   
   try {
-    const estudiante = await getStudentById(cedula);
+    const estudiante = await getStudentById(parseInt(cedula));
     console.log("🔍 getStudentProfile - Estudiante encontrado:", estudiante);
 
     if (!estudiante) {
@@ -539,9 +539,8 @@ export async function getStudentProfile(req, res) {
 
     const today = new Date();
     const isoToday = today.toISOString();
-    console.log("🔍 getStudentProfile - Fecha actual:", isoToday);
 
-    const lapso = await getSemesterByDate(isoToday);
+    const lapso = await getSemesterByDate2(isoToday);
     console.log("🔍 getStudentProfile - Lapso encontrado:", lapso);
 
     if (!lapso) {
@@ -551,7 +550,7 @@ export async function getStudentProfile(req, res) {
         .json({ error: "Error al obtener lapso academico" });
     }
 
-    const matricula = await getMatriculaInfo(cedula, lapso);
+    const matricula = await getMatriculaInfo(parseInt(cedula), lapso.id);
     console.log("🔍 getStudentProfile - Matrícula encontrada:", matricula);
 
     if (!matricula) {

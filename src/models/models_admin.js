@@ -167,6 +167,18 @@ export async function getStudentById(cedula) {
           nombre: true,
         },
       },
+      Users: {
+        select: {
+          userId: true,
+          correo: true,
+          status: true,
+        },
+      },
+      Carreras: {
+        select: {
+          nombre: true,
+        },
+      },
     },
     where: {
       cedula: cedula,
@@ -175,7 +187,19 @@ export async function getStudentById(cedula) {
 }
 
 export async function getMatriculaInfo(cedula, lapso) {
-  return prisma.matricula.findFirst({
+  return prisma.matricula.findMany({
+    select:{
+      idMatricula: true,
+      Secciones:{
+        select:{
+          Materias:{
+            select:{
+              categoria: true,
+            }
+          }
+        }
+      }
+    },
     where: {
       idEstudiante: cedula,
       lapsoAcac: lapso,
@@ -241,42 +265,6 @@ export async function editStudentbyCedula(cedula, updateData) {
 
 
 export async function getStudentListA(lapso) {
-  /*return prisma.matricula.findMany({
-    select: {
-      Estudiantes: {
-        select: {
-          cedula: true,
-          nombre1: true,
-          nombre2: true,
-          apellido1: true,
-          apellido2: true,
-          Carreras: {
-            select: {
-              nombre: true,
-            },
-          },
-          Users: {
-            select: {
-              status: true,
-              correo: true,
-            },
-          },
-        },
-      },
-      Secciones: {
-        select: {
-          Materias: {
-            select: {
-              categoria: true,
-            },
-          },
-        },
-      },
-    },
-    where: {
-      lapsoAcac: lapso.id,
-    },
-  });*/
 
   return prisma.estudiantes.findMany({
     select: {
