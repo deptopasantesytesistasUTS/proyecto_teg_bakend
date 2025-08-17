@@ -107,16 +107,28 @@ export async function getTitlesAula(req, res) {
         title: titleInfo.titulo1,
         purpose: titleInfo.propositoInv1,
         researchLine: titleInfo.lineaInv1,
+        placeName: titleInfo.lugar1,
+        placeAddress: titleInfo.direccionL1,
+        placePhone: titleInfo.lugar1Telf,
+        placeMobile: titleInfo.lugar1Movil,
       },
       {
         title: titleInfo.titulo2,
         purpose: titleInfo.propositoInv2,
         researchLine: titleInfo.lineaInv2,
+        placeName: titleInfo.lugar2,
+        placeAddress: titleInfo.direccionL2,
+        placePhone: titleInfo.lugar2Telf,
+        placeMobile: titleInfo.lugar2Movil,
       },
       {
         title: titleInfo.titulo3,
         purpose: titleInfo.propositoInv3,
         researchLine: titleInfo.lineaInv3,
+        placeName: titleInfo.lugar3,
+        placeAddress: titleInfo.direccionL3,
+        placePhone: titleInfo.lugar3Telf,
+        placeMobile: titleInfo.lugar3Movil,
       },
     ]);
   } catch (error) {
