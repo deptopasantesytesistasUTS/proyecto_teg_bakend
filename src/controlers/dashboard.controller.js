@@ -1,4 +1,4 @@
-import {getDashboardEvents,getComunicadosByUser,} from "../models/dashboard.models.js";
+import {getDashboardEvents,getComunicadosByUser,getConnectedUsers,} from "../models/dashboard.models.js";
 
 
 // Obtener eventos del calendario para el dashboard
@@ -42,6 +42,28 @@ export async function getComunicadosByUserId(req, res) {
     res.json(comunicados);
   } catch (error) {
     console.error("Error en getComunicadosByUserId:", error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+// Obtener usuarios conectados
+export async function getConnectedUsersController(req, res) {
+  try {
+    const { userId, role } = req.query;
+    
+    if (!userId || !role) {
+      return res.status(400).json({ error: "userId y role son requeridos" });
+    }
+
+    const connectedUsers = await getConnectedUsers(userId, parseInt(role));
+    
+    if (!connectedUsers) {
+      return res.status(500).json({ error: "Error al obtener usuarios conectados" });
+    }
+
+    res.json(connectedUsers);
+  } catch (error) {
+    console.error("Error en getConnectedUsersController:", error);
     res.status(500).json({ error: error.message || "Error en el servidor" });
   }
 }

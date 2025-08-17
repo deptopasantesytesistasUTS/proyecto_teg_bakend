@@ -1,9 +1,10 @@
 import {
+  updateTitles,
+  getTitlesInfo,
   getCedulaEstudianteByUserId,
   getMateriasByUserId,
-  getTitlesInfo,
-  updateTitles,
   updateURLs,
+  getAllStudentsTitles,
 } from "../models/aulavirtualEstudiantes.models.js";
 import { getSemesterByDate2 } from "../models/models_admin.js";
 export async function getCedulaEstudianteByUserIdController(req, res) {
@@ -167,6 +168,52 @@ export async function putURLsMatricula(req, res) {
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
+  }
+}
+
+// Obtener todos los títulos de todos los estudiantes para el Excel
+export async function getAllTitlesForExcel(req, res) {
+  try {
+    console.log("Iniciando getAllTitlesForExcel");
+    
+    const today = new Date();
+    const isoToday = today.toISOString();
+    console.log("Fecha actual:", isoToday);
+
+    let lapso = await getSemesterByDate2(isoToday);
+    console.log("Lapso encontrado:", lapso);
+
+    // Si no hay lapso activo, buscar el más reciente
+    if (!lapso) {
+      console.log("No se encontró lapso activo, buscando el más reciente");
+      const prisma = (await import("../prisma.js")).default;
+      lapso = await prisma.lapsoAcac.findFirst({
+        orderBy: {
+          fechaInicio: 'desc'
+        }
+      });
+      console.log("Lapso más reciente encontrado:", lapso);
+    }
+
+    if (!lapso) {
+      console.log("No se encontró ningún lapso");
+      return res.status(404).json({ 
+        error: "No se encontró ningún lapso académico",
+        message: "No hay períodos académicos disponibles para obtener títulos"
+      });
+    }
+
+    // Obtener todos los estudiantes con sus títulos
+    const allTitles = await getAllStudentsTitles(lapso.id);
+    console.log("Títulos obtenidos:", allTitles.length);
+
+    res.json(allTitles);
+  } catch (error) {
+    console.error("Error en getAllTitlesForExcel:", error);
+    res.status(500).json({ 
+      error: error.message || "Error interno del servidor",
+      details: "Error al obtener títulos de estudiantes"
+    });
   }
 }
 

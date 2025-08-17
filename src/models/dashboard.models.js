@@ -221,3 +221,129 @@ export async function getComunicadosByUser(userId, role) {
   }
 }
 
+// Obtener usuarios conectados
+export async function getConnectedUsers(userId, role) {
+  try {
+    const connectedUsers = [];
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000); // 5 minutos atrás
+
+    if (role === 1) {
+      // Admin - puede ver todos los usuarios activos
+      
+      // Obtener administradores activos
+      const admins = await prisma.Users.findMany({
+        where: {
+          role: 1,
+          lastActivity: {
+            gte: fiveMinutesAgo
+          }
+        },
+        select: {
+          id: true,
+          correo: true,
+          lastActivity: true
+        }
+      });
+
+      admins.forEach(admin => {
+        connectedUsers.push({
+          id: admin.id,
+          name: admin.correo.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+          role: "Administrador",
+          avatar: `https://i.pravatar.cc/40?img=${admin.id}`,
+          status: "online",
+          lastSeen: admin.lastActivity,
+          department: "Sistemas"
+        });
+      });
+
+      // Obtener docentes activos
+      const docentes = await prisma.Personal.findMany({
+        where: {
+          Users: {
+            lastActivity: {
+              gte: fiveMinutesAgo
+            }
+          }
+        },
+        include: {
+          Users: {
+            select: {
+              id: true,
+              correo: true,
+              lastActivity: true
+            }
+          },
+          Carreras: {
+            select: {
+              nombre: true
+            }
+          }
+        }
+      });
+
+      docentes.forEach(docente => {
+        connectedUsers.push({
+          id: docente.Users.id,
+          name: `${docente.nombre1} ${docente.apellido1}`,
+          role: "Docente",
+          avatar: `https://i.pravatar.cc/40?img=${docente.Users.id}`,
+          status: "online",
+          lastSeen: docente.Users.lastActivity,
+          department: docente.Carreras?.nombre || "Académico"
+        });
+      });
+
+      // Obtener estudiantes activos
+      const estudiantes = await prisma.Estudiantes.findMany({
+        where: {
+          Users: {
+            lastActivity: {
+              gte: fiveMinutesAgo
+            }
+          }
+        },
+        include: {
+          Users: {
+            select: {
+              id: true,
+              correo: true,
+              lastActivity: true
+            }
+          },
+          Carreras: {
+            select: {
+              nombre: true
+            }
+          }
+        }
+      });
+
+      estudiantes.forEach(estudiante => {
+        connectedUsers.push({
+          id: estudiante.Users.id,
+          name: `${estudiante.nombre1} ${estudiante.apellido1}`,
+          role: "Estudiante",
+          avatar: `https://i.pravatar.cc/40?img=${estudiante.Users.id}`,
+          status: "online",
+          lastSeen: estudiante.Users.lastActivity,
+          department: estudiante.Carreras?.nombre || "TEG"
+        });
+      });
+
+    } else {
+      // Otros roles - solo pueden ver usuarios de su misma sección/carrera
+      // Implementar lógica específica según el rol
+    }
+
+    // Ordenar por última actividad (más reciente primero)
+    connectedUsers.sort((a, b) => new Date(b.lastSeen) - new Date(a.lastSeen));
+
+    return connectedUsers;
+  } catch (error) {
+    console.error("Error en getConnectedUsers:", error);
+    throw error;
+  }
+}
+

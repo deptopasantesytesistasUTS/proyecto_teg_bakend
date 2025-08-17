@@ -253,32 +253,144 @@ export async function getTitlesPDFURL(lapso, estudiante, materiaId) {
   });
 }
 
-export async function updateURLs(data, lapso, cedula, materiaId) {
-  return prisma.matricula.update({
+export async function updateURLs(
+  urls,
+  cedula,
+  lapso,
+  materiaId
+) {
+  const matricula = await prisma.matricula.findFirst({
     where: {
       lapsoAcac: lapso,
-      // The `cedula` parameter should correspond to the `idEstudiante` field.
       idEstudiante: cedula,
-      // The `is` operator is used here because `Secciones` is likely a one-to-one relationship
-      // with `matricula` in your schema.
       Secciones: {
-        is: {
-          Materias: {
-            // Materias is likely a one-to-one or one-to-many relationship with Secciones
-            is: {
-              idMateria: materiaId,
-            },
-          },
-        },
+        idMateria: materiaId,
       },
     },
+  });
+
+  if (!matricula) {
+    throw new Error("Matrícula no encontrada");
+  }
+
+  return prisma.matricula.update({
+    where: {
+      id: matricula.id,
+    },
     data: {
-      urlTitulosPDF,
-      borrador1,
-      borrador2,
-      borrador3,
-      borrador4,
+      urlTitulosPDF: urls.urlTitulosPDF,
+      borrador1: urls.borrador1,
+      borrador2: urls.borrador2,
+      borrador3: urls.borrador3,
+      borrador4: urls.borrador4,
     },
   });
+}
+
+// Obtener todos los títulos de todos los estudiantes para el Excel
+export async function getAllStudentsTitles(lapsoId) {
+  try {
+    const matriculas = await prisma.matricula.findMany({
+      where: {
+        lapsoAcac: lapsoId,
+        OR: [
+          { titulo1: { not: null } },
+          { titulo2: { not: null } },
+          { titulo3: { not: null } }
+        ]
+      },
+      include: {
+        Estudiantes: {
+          include: {
+            Users: {
+              select: {
+                correo: true
+              }
+            },
+            Carreras: {
+              select: {
+                nombre: true
+              }
+            }
+          }
+        },
+        Secciones: {
+          include: {
+            Materias: {
+              select: {
+                categoria: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const titlesData = [];
+
+    matriculas.forEach(matricula => {
+      const student = matricula.Estudiantes;
+      const section = matricula.Secciones;
+      
+      // Agregar título 1 si existe
+      if (matricula.titulo1) {
+        titlesData.push({
+          cedula: student.cedula,
+          nombre: `${student.nombre1} ${student.apellido1}`,
+          email: student.Users?.correo || '',
+          carrera: student.Carreras?.nombre || '',
+          materia: section.Materias?.categoria || '',
+          titulo: matricula.titulo1,
+          proposito: matricula.propositoInv1 || '',
+          lineaInvestigacion: matricula.lineaInv1 || '',
+          lugar: matricula.lugar1 || '',
+          direccion: matricula.direccionL1 || '',
+          telefono: matricula.lugar1Telf || '',
+          movil: matricula.lugar1Movil || ''
+        });
+      }
+
+      // Agregar título 2 si existe
+      if (matricula.titulo2) {
+        titlesData.push({
+          cedula: student.cedula,
+          nombre: `${student.nombre1} ${student.apellido1}`,
+          email: student.Users?.correo || '',
+          carrera: student.Carreras?.nombre || '',
+          materia: section.Materias?.categoria || '',
+          titulo: matricula.titulo2,
+          proposito: matricula.propositoInv2 || '',
+          lineaInvestigacion: matricula.lineaInv2 || '',
+          lugar: matricula.lugar2 || '',
+          direccion: matricula.direccionL2 || '',
+          telefono: matricula.lugar2Telf || '',
+          movil: matricula.lugar2Movil || ''
+        });
+      }
+
+      // Agregar título 3 si existe
+      if (matricula.titulo3) {
+        titlesData.push({
+          cedula: student.cedula,
+          nombre: `${student.nombre1} ${student.apellido1}`,
+          email: student.Users?.correo || '',
+          carrera: student.Carreras?.nombre || '',
+          materia: section.Materias?.categoria || '',
+          titulo: matricula.titulo3,
+          proposito: matricula.propositoInv3 || '',
+          lineaInvestigacion: matricula.lineaInv3 || '',
+          lugar: matricula.lugar3 || '',
+          direccion: matricula.direccionL3 || '',
+          telefono: matricula.lugar3Telf || '',
+          movil: matricula.lugar3Movil || ''
+        });
+      }
+    });
+
+    return titlesData;
+  } catch (error) {
+    console.error("Error en getAllStudentsTitles:", error);
+    throw error;
+  }
 }
 
