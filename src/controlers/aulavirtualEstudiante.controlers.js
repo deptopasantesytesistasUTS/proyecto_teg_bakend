@@ -3,10 +3,12 @@ import {
   getTitlesInfo,
   getCedulaEstudianteByUserId,
   getMateriasByUserId,
+  getProfileEst,
   updateURLs,
   getAllStudentsTitles,
 } from "../models/aulavirtualEstudiantes.models.js";
 import { getSemesterByDate2 } from "../models/models_admin.js";
+import { getUserById } from "../models/models_login.js";
 export async function getCedulaEstudianteByUserIdController(req, res) {
   try {
     const userId = req.params.userId;
@@ -138,6 +140,80 @@ export async function getTitlesAula(req, res) {
   }
 }
 
+export async function getStudentData(req, res) {
+  const { userId, idMateria } = req.params;
+
+  if (!userId) {
+    return res.status(400).json({ error: "Id de usuario no valida" });
+  }
+
+  try {
+    const usuario = await getUserById(parseInt(userId));
+    let perfil;
+    let perfilInfo;
+
+    if (!usuario) {
+      return res.status(400).json({
+        error: "Error en la obtencion del usuario",
+      });
+    }
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    perfil = await getProfileEst(
+      parseInt(userId),
+      lapso.id,
+      parseInt(idMateria)
+    );
+
+    perfilInfo = {
+      nombre1: perfil.Estudiantes.nombre1 || " ",
+      nombre2: perfil.Estudiantes.nombre2 || " ",
+      apellido1: perfil.Estudiantes.apellido1 || " ",
+      apellido2: perfil.Estudiantes.apellido2 || " ",
+      cedula: perfil.Estudiantes.cedula,
+      telf: perfil.Estudiantes.telf || " ",
+      correo: perfil.correo,
+      carrera: perfil.Estudiantes.Carreras.nombre,
+      docente:
+        perfil.Estudiantes.Matricula[0].Secciones.Personal.nombre1 +
+        " " +
+        perfil.Estudiantes.Matricula[0].Secciones.Personal.nombre2 +
+        " " +
+        perfil.Estudiantes.Matricula[0].Secciones.Personal.apellido1 +
+        " " +
+        perfil.Estudiantes.Matricula[0].Secciones.Personal.apellido2,
+      seccion: perfil.Estudiantes.Matricula[0].Secciones.letra,
+      lapso: lapso.id,
+    };
+
+    res.json(perfilInfo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+function getDataBaseName(nombre) {
+  if (nombre === "Protocolo de Investigación 1") return "urlTitulo1PDF";
+  if (nombre === "Protocolo de Investigación 2") return "urlTitulo2PDF";
+  if (nombre === "Protocolo de Investigación 3") return "urlTitulo3PDF";
+  if (nombre === "Capitulo 1") return "borrador1";
+  if (nombre === "Carta Empresarial") return "urlCartaEntrega";
+  if (nombre === "Capitulo 2") return "borrador2";
+  if (nombre === "Capitulo 3") return "borrador3";
+  if (nombre === "Instrumentos de Investigaccion") return "borrador4";
+  if (nombre === "Entrega Instrumento 1") return "instr1Url";
+  if (nombre === "Entrega Instrumento 2") return "instr2Url";
+  if (nombre === "Entrega de Propuesta") return "borrador1";
+  if (nombre === "Informe Completo") return "borrador2";
+  if (nombre === "Tomo Completo (Correciones Predefensa)") return "borrador3";
+  if (nombre === "Entrega de Diapositivas") return "borradorFinal";
+}
+
 export async function putURLsMatricula(req, res) {
   try {
     const urls = req.body;
@@ -149,13 +225,11 @@ export async function putURLsMatricula(req, res) {
 
     const estudiante = await getCedulaEstudianteByUserId(urls.user);
 
+    console.log(urls.enlace);
+
     await updateURLs(
       {
-        urlTitulosPDF,
-        borrador1,
-        borrador2,
-        borrador3,
-        borrador4,
+        [getDataBaseName(urls.nombre)]: urls.enlace,
       },
       estudiante,
       lapso.id,
@@ -214,6 +288,63 @@ export async function getAllTitlesForExcel(req, res) {
       error: error.message || "Error interno del servidor",
       details: "Error al obtener títulos de estudiantes"
     });
+  }
+}
+
+
+export async function getEnlacesEntregados(req,res){
+  try {
+    const { userId, idMateria } = req.params;
+    const cedula = await getCedulaEstudianteByUserId(parseInt(userId));
+    if (!cedula) {
+      res.status(404).json({ message: "Estudiante no encontrado" });
+    }
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    const titleInfo = await getTitlesInfo(
+      lapso.id,
+      cedula,
+      parseInt(idMateria)
+    );
+
+    console.log(titleInfo);
+
+    res.json([
+      {
+        title: titleInfo.titulo1,
+        purpose: titleInfo.propositoInv1,
+        researchLine: titleInfo.lineaInv1,
+        placeName: titleInfo.lugar1,
+        placeAddress: titleInfo.direccionL1,
+        placePhone: titleInfo.lugar1Telf,
+        placeMobile: titleInfo.lugar1Movil,
+      },
+      {
+        title: titleInfo.titulo2,
+        purpose: titleInfo.propositoInv2,
+        researchLine: titleInfo.lineaInv2,
+        placeName: titleInfo.lugar2,
+        placeAddress: titleInfo.direccionL2,
+        placePhone: titleInfo.lugar2Telf,
+        placeMobile: titleInfo.lugar2Movil,
+      },
+      {
+        title: titleInfo.titulo3,
+        purpose: titleInfo.propositoInv3,
+        researchLine: titleInfo.lineaInv3,
+        placeName: titleInfo.lugar3,
+        placeAddress: titleInfo.direccionL3,
+        placePhone: titleInfo.lugar3Telf,
+        placeMobile: titleInfo.lugar3Movil,
+      },
+    ]);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
   }
 }
 

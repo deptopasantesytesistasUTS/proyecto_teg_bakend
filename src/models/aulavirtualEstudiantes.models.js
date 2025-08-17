@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { tr } from "date-fns/locale";
 const prisma = new PrismaClient();
 
 // Obtener la cédula de un estudiante en la tabla Estudiantes usando userId
@@ -253,39 +254,6 @@ export async function getTitlesPDFURL(lapso, estudiante, materiaId) {
   });
 }
 
-export async function updateURLs(
-  urls,
-  cedula,
-  lapso,
-  materiaId
-) {
-  const matricula = await prisma.matricula.findFirst({
-    where: {
-      lapsoAcac: lapso,
-      idEstudiante: cedula,
-      Secciones: {
-        idMateria: materiaId,
-      },
-    },
-  });
-
-  if (!matricula) {
-    throw new Error("Matrícula no encontrada");
-  }
-
-  return prisma.matricula.update({
-    where: {
-      id: matricula.id,
-    },
-    data: {
-      urlTitulosPDF: urls.urlTitulosPDF,
-      borrador1: urls.borrador1,
-      borrador2: urls.borrador2,
-      borrador3: urls.borrador3,
-      borrador4: urls.borrador4,
-    },
-  });
-}
 
 // Obtener todos los títulos de todos los estudiantes para el Excel
 export async function getAllStudentsTitles(lapsoId) {
@@ -390,7 +358,126 @@ export async function getAllStudentsTitles(lapsoId) {
     return titlesData;
   } catch (error) {
     console.error("Error en getAllStudentsTitles:", error);
+  }
+}
+
+export async function updateURLs(dataURL, cedula, lapso, materiaId) {
+  try {
+    console.log("data ", dataURL);
+    // 1. Encontrar el registro único de Matricula
+    const matricula = await prisma.matricula.findFirst({
+      where: {
+        lapsoAcac: lapso,
+        // The `cedula` parameter should correspond to the `idEstudiante` field.
+        idEstudiante: cedula,
+        // The `is` operator is used here because `Secciones` is likely a one-to-one relationship
+        // with `matricula` in your schema.
+        Secciones: {
+          is: {
+            Materias: {
+              // Materias is likely a one-to-one or one-to-many relationship with Secciones
+              is: {
+                idMateria: materiaId,
+              },
+            },
+          },
+        },
+      },
+      // We only need the unique ID of the record to perform the update.
+      select: {
+        idMatricula: true, // Replace with your actual primary key field
+      },
+    });
+
+    if (!matricula) {
+      throw new Error(
+        "Matricula record not found for the given student, lapso, and materiaId."
+      );
+    }
+
+    // 2. Si se encontró un registro, actualizarlo
+    return prisma.matricula.update({
+      data: {
+        ...dataURL
+      },
+      where: {
+        // Use the unique ID of the record we just found in Step 1.
+        idMatricula: matricula.idMatricula, // Replace with your actual primary key field
+      },
+    });
+  } catch (error) {
+    console.error("Error al actualizar la URL de la matrícula:", error);
     throw error;
   }
 }
 
+export async function getProfileEst(userID, lapso, idMateria) {
+  try {
+    const userProfile = await prisma.users.findFirst({
+      where: {
+        userId: userID,
+        Estudiantes: {
+          is: {
+            Matricula: {
+              // Aquí Matricula es una relación de uno a muchos
+              some: {
+                // Usamos 'some' para filtrar la colección de matrículas
+                lapsoAcac: lapso,
+                Secciones: {
+                  is: {
+                    // Si la relación con Secciones es de uno a uno, 'is' es correcto.
+                    Materias: {
+                      is: {
+                        idMateria: idMateria,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      select: {
+        correo: true,
+        Estudiantes: {
+          select: {
+            cedula: true,
+            nombre1: true,
+            nombre2: true,
+            apellido1: true,
+            apellido2: true,
+            telf: true,
+            Carreras: {
+              select: {
+                nombre: true,
+              },
+            },
+            Matricula: {
+              select: {
+                Secciones: {
+                  select: {
+                    letra: true,
+                    Personal: {
+                      select: {
+                        nombre1: true,
+                        nombre2: true,
+                        apellido1: true,
+                        apellido2: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return userProfile;
+  } catch (error) {
+    console.error("Error al obtener el perfil del estudiante:", error);
+    throw error;
+  }
+}

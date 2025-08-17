@@ -89,7 +89,7 @@ model Matricula {
   lineaInv1                                String?     @db.VarChar
   lineaInv2                                String?     @db.VarChar
   lineaInv3                                String?     @db.VarChar
-  urlTitulosPDF                            String?     @db.VarChar
+  urlTitulo1PDF                            String?     @db.VarChar
   urlCartaEntrega                          String?     @db.VarChar
   lugar1                                   String?     @db.VarChar
   lugar2                                   String?     @db.VarChar
@@ -103,6 +103,10 @@ model Matricula {
   lugar1Movil                              String?     @db.VarChar
   lugar2Movil                              String?     @db.VarChar
   lugar3Movil                              String?     @db.VarChar
+  instr1Url                                String?     @db.VarChar
+  instr2Url                                String?     @db.VarChar
+  urlTitulo2PDF                            String?     @db.VarChar
+  urlTitulo3PDF                            String?     @db.VarChar
   Estudiantes                              Estudiantes @relation(fields: [idEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante")
   lapsoAcac_Matricula_lapsoAcacTolapsoAcac lapsoAcac?  @relation("Matricula_lapsoAcacTolapsoAcac", fields: [lapsoAcac], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lapso")
   Secciones                                Secciones   @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_matricula_seccion")
