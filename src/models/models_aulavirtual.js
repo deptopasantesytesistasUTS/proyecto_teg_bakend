@@ -34,7 +34,7 @@ export async function getMateriaByIdWithAulaVirtual(idMateria) {
 }
 
 // Obtener solo el listado de materias para el dashboard, filtrado por usuario y rol
-export async function getMateriasDashboard(userId, role) {
+export async function getMateriasDashboard(userId, role,lapso) {
   if (role == 3 || role === "3" || role === "estudiante") {
     // 1. Buscar la cédula del estudiante
     const estudiante = await prisma.estudiantes.findFirst({
@@ -43,7 +43,7 @@ export async function getMateriasDashboard(userId, role) {
     if (!estudiante) return [];
     // 2. Buscar materias donde el estudiante está inscrito
     const matriculas = await prisma.matricula.findMany({
-      where: { idEstudiante: estudiante.cedula },
+      where: { idEstudiante: estudiante.cedula, lapsoAcac: lapso },
       include: {
         Secciones: {
           include: {
@@ -65,7 +65,7 @@ export async function getMateriasDashboard(userId, role) {
     if (!docente) return [];
     // 2. Buscar materias donde el docente imparte la sección
     const secciones = await prisma.secciones.findMany({
-      where: { idDocente: docente.cedula },
+      where: { idDocente: docente.cedula, lapsoAcac: lapso },
       include: {
         Materias: { include: { Carreras: true } },
       },

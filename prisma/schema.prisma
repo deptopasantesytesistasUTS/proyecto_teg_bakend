@@ -83,6 +83,26 @@ model Matricula {
   urlCargaAcad                             String?     @db.VarChar(255)
   virtual                                  Boolean?
   lapsoAcac                                Int?
+  propositoInv1                            String?     @db.VarChar
+  propositoInv2                            String?     @db.VarChar
+  propositoInv3                            String?     @db.VarChar
+  lineaInv1                                String?     @db.VarChar
+  lineaInv2                                String?     @db.VarChar
+  lineaInv3                                String?     @db.VarChar
+  urlTitulosPDF                            String?     @db.VarChar
+  urlCartaEntrega                          String?     @db.VarChar
+  lugar1                                   String?     @db.VarChar
+  lugar2                                   String?     @db.VarChar
+  lugar3                                   String?     @db.VarChar
+  direccionL1                              String?     @db.VarChar
+  direccionL2                              String?     @db.VarChar
+  direccionL3                              String?     @db.VarChar
+  lugar1Telf                               String?     @db.VarChar
+  lugar2Telf                               String?     @db.VarChar
+  lugar3Telf                               String?     @db.VarChar
+  lugar1Movil                              String?     @db.VarChar
+  lugar2Movil                              String?     @db.VarChar
+  lugar3Movil                              String?     @db.VarChar
   Estudiantes                              Estudiantes @relation(fields: [idEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante")
   lapsoAcac_Matricula_lapsoAcacTolapsoAcac lapsoAcac?  @relation("Matricula_lapsoAcacTolapsoAcac", fields: [lapsoAcac], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lapso")
   Secciones                                Secciones   @relation(fields: [idSeccion], references: [idSeccion], onDelete: NoAction, onUpdate: NoAction, map: "fk_matricula_seccion")

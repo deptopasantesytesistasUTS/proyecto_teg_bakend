@@ -1,10 +1,18 @@
-import { getMateriasWithAulaVirtual, getMateriaByIdWithAulaVirtual, getMateriasDashboard, getCedulaPersonalByUserId, getParticipantesBySeccion } from "../models/models_aulavirtual.js";
+import {
+  getMateriasWithAulaVirtual,
+  getMateriaByIdWithAulaVirtual,
+  getMateriasDashboard,
+  getCedulaPersonalByUserId,
+  getParticipantesBySeccion,
+} from "../models/models_aulavirtual.js";
+
+import { getSemesterByDate2 } from "../models/models_admin.js";
 
 // Controlador para obtener todas las materias con sus secciones (aula virtual)
 export async function getMateriasAulaVirtual(req, res) {
   try {
     const materias = await getMateriasWithAulaVirtual();
-    console.log('Materias Aula Virtual:', JSON.stringify(materias, null, 2));
+    console.log("Materias Aula Virtual:", JSON.stringify(materias, null, 2));
     res.json(materias);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener materias" });
@@ -16,7 +24,8 @@ export async function getMateriaAulaVirtualById(req, res) {
   try {
     const { id } = req.params;
     const materia = await getMateriaByIdWithAulaVirtual(id);
-    if (!materia) return res.status(404).json({ error: "Materia no encontrada" });
+    if (!materia)
+      return res.status(404).json({ error: "Materia no encontrada" });
     res.json(materia);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener la materia" });
@@ -30,9 +39,15 @@ export async function getMateriasDashboardController(req, res) {
     if (!userId || !role) {
       return res.status(400).json({ error: "userId y role son requeridos" });
     }
-    const materias = await getMateriasDashboard(userId, role);
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+    
+    const materias = await getMateriasDashboard(userId, role, lapso.id);
     res.json(materias);
   } catch (error) {
+    console.log(error)
     res.status(500).json({ error: "Error al obtener materias para dashboard" });
   }
 }
@@ -51,7 +66,6 @@ export async function getCedulaPersonalController(req, res) {
   }
 }
 
-
 // Controlador para obtener participantes de una sección
 export async function getParticipantesBySeccionController(req, res) {
   try {
@@ -61,4 +75,4 @@ export async function getParticipantesBySeccionController(req, res) {
   } catch (error) {
     res.status(500).json({ error: "Error al obtener participantes" });
   }
-} 
+}
