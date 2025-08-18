@@ -15,6 +15,8 @@ const router = express.Router();
 
  router.get("/estudiante/profile/:userId/:idMateria",controllers.getStudentData);
 
+ router.get("/estudiante/archivos/:userId/:idMateria",controllers.getEnlacesEntregados);
+
 
 // Nueva ruta para obtener todos los títulos para el Excel
 router.get("/estudiante/titulos-excel", controllers.getAllTitlesForExcel);

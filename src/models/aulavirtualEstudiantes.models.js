@@ -231,6 +231,53 @@ export async function getTitlesInfo(lapso, cedula, materiaId) {
   });
 }
 
+export async function getEnlacesInfo(lapso, cedula, materiaId) {
+  return prisma.matricula.findFirst({
+    select: {
+      borrador1: true,
+      borrador2: true,
+      borrador3: true,
+      urlCargaAcad: true,
+      urlCartaEntrega: true,
+      borrador4: true,
+      borradorFinal: true,
+      urlTitulo1PDF: true,
+      urlTitulo2PDF: true,
+      urlTitulo3PDF: true,
+      instr1Url: true,
+      instr2Url: true,
+    },
+    where: {
+      lapsoAcac: lapso,
+      // The `cedula` parameter should correspond to the `idEstudiante` field.
+      idEstudiante: cedula,
+      // The `is` operator is used here because `Secciones` is likely a one-to-one relationship
+      // with `matricula` in your schema.
+      Secciones: {
+        is: {
+          Materias: {
+            // Materias is likely a one-to-one or one-to-many relationship with Secciones
+            is: {
+              idMateria: materiaId,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getCategoria(idMateria) {
+  return prisma.materias.findFirst({
+    select:{
+      categoria: true
+    },
+    where:{
+      idMateria: idMateria
+    }
+  })
+}
+
 export async function getTitlesPDFURL(lapso, estudiante, materiaId) {
   return prisma.matricula.findFirst({
     select: {

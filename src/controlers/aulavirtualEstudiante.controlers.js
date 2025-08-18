@@ -1,3 +1,4 @@
+import { categoria_enum, materia_categoria } from "@prisma/client";
 import {
   updateTitles,
   getTitlesInfo,
@@ -6,6 +7,8 @@ import {
   getProfileEst,
   updateURLs,
   getAllStudentsTitles,
+  getEnlacesInfo,
+  getCategoria,
 } from "../models/aulavirtualEstudiantes.models.js";
 import { getSemesterByDate2 } from "../models/models_admin.js";
 import { getUserById } from "../models/models_login.js";
@@ -102,8 +105,6 @@ export async function getTitlesAula(req, res) {
       cedula,
       parseInt(idMateria)
     );
-
-    console.log(titleInfo);
 
     res.json([
       {
@@ -212,6 +213,8 @@ function getDataBaseName(nombre) {
   if (nombre === "Informe Completo") return "borrador2";
   if (nombre === "Tomo Completo (Correciones Predefensa)") return "borrador3";
   if (nombre === "Entrega de Diapositivas") return "borradorFinal";
+  if (nombre === "Entrega de Diapositivas") return "borradorFinal";
+  if (nombre === "Carga Academica") return "urlCargaAcad";
 }
 
 export async function putURLsMatricula(req, res) {
@@ -225,7 +228,6 @@ export async function putURLsMatricula(req, res) {
 
     const estudiante = await getCedulaEstudianteByUserId(urls.user);
 
-    console.log(urls.enlace);
 
     await updateURLs(
       {
@@ -249,7 +251,7 @@ export async function putURLsMatricula(req, res) {
 export async function getAllTitlesForExcel(req, res) {
   try {
     console.log("Iniciando getAllTitlesForExcel");
-    
+
     const today = new Date();
     const isoToday = today.toISOString();
     console.log("Fecha actual:", isoToday);
@@ -263,17 +265,17 @@ export async function getAllTitlesForExcel(req, res) {
       const prisma = (await import("../prisma.js")).default;
       lapso = await prisma.lapsoAcac.findFirst({
         orderBy: {
-          fechaInicio: 'desc'
-        }
+          fechaInicio: "desc",
+        },
       });
       console.log("Lapso más reciente encontrado:", lapso);
     }
 
     if (!lapso) {
       console.log("No se encontró ningún lapso");
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: "No se encontró ningún lapso académico",
-        message: "No hay períodos académicos disponibles para obtener títulos"
+        message: "No hay períodos académicos disponibles para obtener títulos",
       });
     }
 
@@ -284,15 +286,14 @@ export async function getAllTitlesForExcel(req, res) {
     res.json(allTitles);
   } catch (error) {
     console.error("Error en getAllTitlesForExcel:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: error.message || "Error interno del servidor",
-      details: "Error al obtener títulos de estudiantes"
+      details: "Error al obtener títulos de estudiantes",
     });
   }
 }
 
-
-export async function getEnlacesEntregados(req,res){
+export async function getEnlacesEntregados(req, res) {
   try {
     const { userId, idMateria } = req.params;
     const cedula = await getCedulaEstudianteByUserId(parseInt(userId));
@@ -305,46 +306,57 @@ export async function getEnlacesEntregados(req,res){
 
     const lapso = await getSemesterByDate2(isoToday);
 
-    const titleInfo = await getTitlesInfo(
-      lapso.id,
-      cedula,
-      parseInt(idMateria)
-    );
+    const categoria = await getCategoria(parseInt(idMateria));
 
-    console.log(titleInfo);
+    const info = await getEnlacesInfo(lapso.id, cedula, parseInt(idMateria));
 
-    res.json([
-      {
-        title: titleInfo.titulo1,
-        purpose: titleInfo.propositoInv1,
-        researchLine: titleInfo.lineaInv1,
-        placeName: titleInfo.lugar1,
-        placeAddress: titleInfo.direccionL1,
-        placePhone: titleInfo.lugar1Telf,
-        placeMobile: titleInfo.lugar1Movil,
-      },
-      {
-        title: titleInfo.titulo2,
-        purpose: titleInfo.propositoInv2,
-        researchLine: titleInfo.lineaInv2,
-        placeName: titleInfo.lugar2,
-        placeAddress: titleInfo.direccionL2,
-        placePhone: titleInfo.lugar2Telf,
-        placeMobile: titleInfo.lugar2Movil,
-      },
-      {
-        title: titleInfo.titulo3,
-        purpose: titleInfo.propositoInv3,
-        researchLine: titleInfo.lineaInv3,
-        placeName: titleInfo.lugar3,
-        placeAddress: titleInfo.direccionL3,
-        placePhone: titleInfo.lugar3Telf,
-        placeMobile: titleInfo.lugar3Movil,
-      },
-    ]);
+    console.log(info);
+
+    let enlaces;
+
+    if (categoria.categoria === materia_categoria.Trabajo_Especial_de_Grado) {
+      enlaces = [
+        {
+          ["Entrega Instrumento 1"]: info.instr1Url,
+        },
+        { ["Entrega Instrumento 2"]: info.instr2Url },
+        { ["Entrega de Propuesta"]: info.borrador1 },
+        {
+          ["Informe Completo"]: info.borrador2,
+        },
+        {
+          ["Tomo Completo (Correciones Predefensa)"]: info.borrador3,
+        },
+        { ["Entrega de Diapositivas"]: info.borradorFinal },
+        { ["Carga Academica"]: info.urlCargaAcad },
+      ];
+    } else {
+      enlaces = [
+        {
+          ["Protocolo de Investigación 1"]: info.urlTitulo1PDF,
+        },
+        {
+          ["Protocolo de Investigación 2"]: info.urlTitulo2PDF,
+        },
+        {
+          ["Protocolo de Investigación 3"]: info.urlTitulo3PDF,
+        },
+        { ["Capitulo 1"]: info.borrador1 },
+        { ["Carta Empresarial"]: info.urlCartaEntrega },
+        { ["Capitulo 2"]: info.borrador2 },
+        { ["Capitulo 3"]: info.borrador3 },
+        {
+          ["Instrumentos de Investigaccion"]: info.borrador4,
+        },
+        { ["Carga Academica"]: info.urlCargaAcad },
+      ];
+    }
+
+    console.log(enlaces)
+
+    res.json(enlaces);
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: error.message });
   }
 }
-
