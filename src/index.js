@@ -10,6 +10,7 @@ import aulavirtualRoutes from "./routes/aulavirtual.routes.js";
 import aulavirtualEstudiantesRoutes from "./routes/aulavirtualEstudiantes.routes.js";
 import superUserRoutes from "./routes/superUser.routes.js";
 import aulavirtualDocenteRoutes from "./routes/aulavirtualDocente.routes.js";
+
 const app = express();
 
 // Habilita CORS para el frontend antes de las rutas
