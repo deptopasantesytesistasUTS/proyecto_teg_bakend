@@ -360,3 +360,79 @@ export async function getEnlacesEntregados(req, res) {
     res.status(500).json({ error: error.message });
   }
 }
+
+export async function getEnlacesEntregadosAdm(req, res) {
+  try {
+    const { cedula, idMateria } = req.params;
+
+    if (!cedula) {
+     return res.status(404).json({ message: "Estudiante no encontrado" });
+    }
+
+    if (!idMateria || idMateria == 0) {
+      return res.status(404).json({ message: "Materia no encontrado" });
+    }
+
+    console.log(idMateria);
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    const categoria = await getCategoria(parseInt(idMateria));
+
+    const info = await getEnlacesInfo(lapso.id, parseInt(cedula), parseInt(idMateria));
+
+    let enlaces;
+
+    if (!categoria || !info) {
+      return res.status(404).json({ message: "Error en busqueda de informacion" });
+    }
+
+    
+
+    if (categoria.categoria === materia_categoria.Trabajo_Especial_de_Grado) {
+      enlaces = [
+        {
+          ["Entrega Instrumento 1"]: info.instr1Url,
+        },
+        { ["Entrega Instrumento 2"]: info.instr2Url },
+        { ["Entrega de Propuesta"]: info.borrador1 },
+        {
+          ["Informe Completo"]: info.borrador2,
+        },
+        {
+          ["Tomo Completo (Correciones Predefensa)"]: info.borrador3,
+        },
+        { ["Entrega de Diapositivas"]: info.borradorFinal },
+        { ["Carga Academica"]: info.urlCargaAcad },
+      ];
+    } else {
+      enlaces = [
+        {
+          ["Protocolo de Investigación 1"]: info.urlTitulo1PDF,
+        },
+        {
+          ["Protocolo de Investigación 2"]: info.urlTitulo2PDF,
+        },
+        {
+          ["Protocolo de Investigación 3"]: info.urlTitulo3PDF,
+        },
+        { ["Capitulo 1"]: info.borrador1 },
+        { ["Carta Empresarial"]: info.urlCartaEntrega },
+        { ["Capitulo 2"]: info.borrador2 },
+        { ["Capitulo 3"]: info.borrador3 },
+        {
+          ["Instrumentos de Investigaccion"]: info.borrador4,
+        },
+        { ["Carga Academica"]: info.urlCargaAcad },
+      ];
+    }
+
+    res.json(enlaces);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+}

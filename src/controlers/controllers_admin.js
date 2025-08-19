@@ -29,11 +29,14 @@ import {
   getUserIdByCedulaE,
   setUserActive,
   deleteMatriculaEst,
+  createJudge,
+  getInfoJudges,
 } from "../models/models_admin.js";
 import bcryptjs from "bcryptjs";
 
 import { getUserByCorreo, updateCorreo } from "../models/models_login.js";
 import transporter from "../../config/nodemailer.js";
+import { email } from "zod/v4";
 
 export async function getSemesterInfo(req, res) {
   const { fecha } = req.params;
@@ -153,14 +156,14 @@ export async function createNewSemester(req, res) {
 
     const inv2Borrador4 = convertFecha(newSemester.inv2Borrador4);
 
-    const inv2BorradorFinal = convertFecha(newSemester.inv2BorradorFinal) 
+    const inv2BorradorFinal = convertFecha(newSemester.inv2BorradorFinal);
 
     const tutInicio = convertFecha(newSemester.tutInicio);
 
     const tutFin = convertFecha(newSemester.tutFinal);
 
     const cartaDate = convertFecha(newSemester.cartaDate);
-    
+
     const fechaEntInst = convertFecha(newSemester.fechaEntInst);
 
     const semester = await createSemester(
@@ -375,8 +378,7 @@ export async function postEstudiante(req, res) {
 
     if (estudianteAux) {
       newStudent = estudianteAux;
-    } else{
-
+    } else {
       user = await createUser(estudiante.correo, hashedPassword, 3);
 
       if (!user) {
@@ -396,9 +398,6 @@ export async function postEstudiante(req, res) {
         user.userId
       );
     }
-
-    
-    
 
     if (!newStudent) {
       const deleteUser = await deleteUserByEmail(user.correo);
@@ -455,8 +454,8 @@ export async function postEstudiante(req, res) {
       }
     }
 
-
-    if(user) await transporter.sendMail({
+    if (user)
+      await transporter.sendMail({
         from: "UTS San Cristobal",
         to: user.correo,
         subject: `Usuario UTS San Cristobal`,
@@ -507,8 +506,8 @@ export async function getStudentListAdmin(req, res) {
             est.apellido2,
           cedula: est.cedula,
           carrera: est.Carreras.nombre,
-          materia: est.Matricula.map((mat) =>{
-            return mat.Secciones.Materias.categoria
+          materia: est.Matricula.map((mat) => {
+            return mat.Secciones.Materias.categoria;
           }),
           status: est.Users.status,
           email: est.Users.correo,
@@ -525,7 +524,7 @@ export async function getStudentProfile(req, res) {
   const { cedula } = req.params;
   console.log("🔍 getStudentProfile - Cedula recibida:", cedula);
   console.log("🔍 getStudentProfile - Tipo de cedula:", typeof cedula);
-  
+
   try {
     const estudiante = await getStudentById(parseInt(cedula));
     console.log("🔍 getStudentProfile - Estudiante encontrado:", estudiante);
@@ -615,7 +614,7 @@ export async function getUnidadesList(req, res) {
           idSeccion: u.idSeccion,
           correoDocente: u.Personal.Users.correo,
         };
-      })
+      }),
     });
   } catch (error) {
     console.error(error);
@@ -623,9 +622,8 @@ export async function getUnidadesList(req, res) {
   }
 }
 
-export async function getProfesorParaCursos(req, res){
+export async function getProfesorParaCursos(req, res) {
   try {
-
     const profesores = await getProfesorParaCurso();
 
     if (!profesores) {
@@ -635,7 +633,7 @@ export async function getProfesorParaCursos(req, res){
     }
 
     const resProfesores = profesores.map((profesor) => {
-      console.log(profesor)
+      console.log(profesor);
       return {
         idProfesor: profesor.Personal[0].cedula,
         nombre:
@@ -647,7 +645,7 @@ export async function getProfesorParaCursos(req, res){
           " " +
           profesor.Personal[0].apellido2,
       };
-    })
+    });
 
     res.json({
       profesores: resProfesores,
@@ -658,7 +656,7 @@ export async function getProfesorParaCursos(req, res){
   }
 }
 
-export async function postSeccion(req,res) {
+export async function postSeccion(req, res) {
   const seccionInfo = req.body;
 
   try {
@@ -668,7 +666,7 @@ export async function postSeccion(req,res) {
       });
     }
 
-    const carrera = await getCarreraIDByNombre(seccionInfo.carrera)
+    const carrera = await getCarreraIDByNombre(seccionInfo.carrera);
 
     if (!carrera) {
       return res.status(400).json({
@@ -676,7 +674,7 @@ export async function postSeccion(req,res) {
       });
     }
 
-    const materia = await getMateriaID(carrera.idCarrera,seccionInfo.nombre)
+    const materia = await getMateriaID(carrera.idCarrera, seccionInfo.nombre);
 
     if (!materia) {
       return res.status(400).json({
@@ -695,11 +693,9 @@ export async function postSeccion(req,res) {
         .json({ error: "Error al obtener lapso academico" });
     }
 
-    const profesores = seccionInfo.profesores.split(',');
+    const profesor = await getDocentebyID(parseInt(seccionInfo.profesores));
 
-    const profesor = await getDocentebyID(parseInt(profesores[0]));
-
-    if(!profesor){
+    if (!profesor) {
       return res
         .status(401)
         .json({ error: "Error al obtener informacion del profesor" });
@@ -817,7 +813,7 @@ export async function postDocente(req, res) {
       docente.firstLastName,
       docente.secondLastName,
       docente.telf,
-      user.userId,
+      user.userId
     );
 
     if (!newTeacher) {
@@ -845,11 +841,10 @@ export async function postDocente(req, res) {
   }
 }
 
-export async function deleteMatricula(req,res){
+export async function deleteMatricula(req, res) {
   const estudiante = req.body;
 
   try {
-
     const today = new Date();
     const isoToday = today.toISOString();
 
@@ -863,11 +858,11 @@ export async function deleteMatricula(req,res){
 
     const user = await getUserIdByCedulaE(parseInt(estudiante.cedula));
 
-    if(user){
-      setUserActive(user.Users.userId,"inactivo");
+    if (user) {
+      setUserActive(user.Users.userId, "inactivo");
     }
 
-    await deleteMatriculaEst(lapso.id,parseInt(estudiante.cedula))
+    await deleteMatriculaEst(lapso.id, parseInt(estudiante.cedula));
 
     res.json({
       ok: true,
@@ -878,3 +873,159 @@ export async function deleteMatricula(req,res){
   }
 }
 
+export async function assignJudges(req, res) {
+  const info = req.body;
+
+  try {
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    if (!lapso) {
+      return res
+        .status(401)
+        .json({ error: "Error al obtener lapso academico" });
+    }
+
+    const jurado1 = await createJudge(
+      parseInt(info.studentId),
+      parseInt(info.judges[0]),
+      lapso.id
+    );
+    const jurado2 = await createJudge(
+      parseInt(info.studentId),
+      parseInt(info.judges[1]),
+      lapso.id
+    );
+    const jurado3 = await createJudge(
+      parseInt(info.studentId),
+      parseInt(info.judges[2]),
+      lapso.id
+    );
+
+    if (!jurado1 || !jurado2 || !jurado3) {
+      return res.status(401).json({ error: "Error en la creacion del jurado" });
+    }
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function getJudges(req,res) {
+  try {
+    const { cedulaEst } = req.params;
+
+     const today = new Date();
+     const isoToday = today.toISOString();
+
+     const lapso = await getSemesterByDate2(isoToday);
+
+
+    const judges = await getInfoJudges(parseInt(cedulaEst),lapso.id)
+
+
+
+    if (!judges) {
+      return res.status(401).json({ error: "Error en la busqueda de informacion de los jueces" });
+    }
+
+    console.log(
+      {
+        nombre:
+          judges[0].Personal.nombre1 +
+          " " +
+          judges[0].Personal.nombre2 +
+          " " +
+          judges[0].Personal.apellido1 +
+          " " +
+          judges[0].Personal.apellido2 +
+          " ",
+        email: judges[0].Personal.Users.correo,
+        cedula: judges[0].Personal.cedula,
+        telf: judges[0].Personal.telf,
+      },
+      {
+        nombre:
+          judges[1].Personal.nombre1 +
+          " " +
+          judges[1].Personal.nombre2 +
+          " " +
+          judges[1].Personal.apellido1 +
+          " " +
+          judges[1].Personal.apellido2 +
+          " ",
+        email: judges[1].Personal.Users.correo,
+        cedula: judges[1].Personal.cedula,
+        telf: judges[1].Personal.telf,
+      },
+      {
+        nombre:
+          judges[2].Personal.nombre1 +
+          " " +
+          judges[2].Personal.nombre2 +
+          " " +
+          judges[2].Personal.apellido1 +
+          " " +
+          judges[2].Personal.apellido2 +
+          " ",
+        email: judges[2].Personal.Users.correo,
+        cedula: judges[2].Personal.cedula,
+        telf: judges[2].Personal.telf,
+      }
+    );
+    
+    res.json([
+      {
+        nombre:
+          judges[0].Personal.nombre1 +
+          " " +
+          judges[0].Personal.nombre2 +
+          " " +
+          judges[0].Personal.apellido1 +
+          " " +
+          judges[0].Personal.apellido2 +
+          " ",
+        email: judges[0].Personal.Users.correo,
+        cedula: judges[0].Personal.cedula,
+        telf: judges[0].Personal.telf,
+      },
+      {
+        nombre:
+          judges[1].Personal.nombre1 +
+          " " +
+          judges[1].Personal.nombre2 +
+          " " +
+          judges[1].Personal.apellido1 +
+          " " +
+          judges[1].Personal.apellido2 +
+          " ",
+        email: judges[1].Personal.Users.correo,
+        cedula: judges[1].Personal.cedula,
+        telf: judges[1].Personal.telf,
+      },
+      {
+        nombre:
+          judges[2].Personal.nombre1 +
+          " " +
+          judges[2].Personal.nombre2 +
+          " " +
+          judges[2].Personal.apellido1 +
+          " " +
+          judges[2].Personal.apellido2 +
+          " ",
+        email: judges[2].Personal.Users.correo,
+        cedula: judges[2].Personal.cedula,
+        telf: judges[2].Personal.telf,
+      },
+    ]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}

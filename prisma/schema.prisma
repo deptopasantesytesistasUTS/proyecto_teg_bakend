@@ -55,8 +55,10 @@ model Jurados {
   id               Int          @id @default(autoincrement())
   cedulaJurado     Int?
   cedulaEstudiante Int?
+  lapso            Int?
   Estudiantes      Estudiantes? @relation(fields: [cedulaEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_cedula")
   Personal         Personal?    @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
+  lapsoAcac        lapsoAcac?   @relation(fields: [lapso], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lapso")
 }
 
 model Materias {
@@ -199,6 +201,7 @@ model lapsoAcac {
   fechaGenCarta                            DateTime?   @db.Date
   fechaEntInst                             DateTime?   @db.Date
   urlCronograma                            String?     @db.VarChar
+  Jurados                                  Jurados[]
   Matricula_Matricula_lapsoAcacTolapsoAcac Matricula[] @relation("Matricula_lapsoAcacTolapsoAcac")
   Secciones                                Secciones[]
 }
