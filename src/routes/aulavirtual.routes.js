@@ -14,4 +14,10 @@ router.get("/cedula-personal", controllers.getCedulaPersonalController);
 // Ruta para obtener la cédula de un estudiante en la tabla Estudiantes
 router.get("/secciones/:idSeccion/participantes", controllers.getParticipantesBySeccionController);
 
+// comunicados (get , post , put , delete)
+router.get("/comunicados", controllers.getComunicadosController);
+router.post("/comunicados", controllers.postComunicadosController);
+router.put("/comunicados/:id", controllers.putComunicadosController);
+router.delete("/comunicados/:id", controllers.deleteComunicadosController);
+
 export default router; 

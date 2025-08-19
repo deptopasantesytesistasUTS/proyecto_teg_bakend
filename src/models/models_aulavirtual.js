@@ -110,3 +110,75 @@ export async function getParticipantesBySeccion(idSeccion) {
     throw err;
   }
 }
+
+// =============== Comunicados (CRUD) =================
+
+export async function getComunicados({ seccionId = null, limit = 10 } = {}) {
+  // Si se requiere filtrar por seccion, usar la relación Receptores
+  if (seccionId) {
+    const receptores = await prisma.receptores.findMany({
+      where: { idSeccion: Number(seccionId) },
+      include: { Comunicados: true },
+      take: Number(limit),
+    });
+    const comunicados = receptores
+      .map(r => r.Comunicados)
+      .filter(Boolean)
+      .sort((a, b) => new Date(b.created_At) - new Date(a.created_At));
+    return comunicados;
+  }
+  // Caso general: últimos comunicados
+  return prisma.comunicados.findMany({
+    orderBy: { created_At: "desc" },
+    take: Number(limit),
+  });
+}
+
+export async function createComunicado({ titulo, texto, idUsuario = null, seccionesIds = [] }) {
+  const comunicado = await prisma.comunicados.create({
+    data: {
+      titulo,
+      texto,
+      idUsuario: idUsuario ? Number(idUsuario) : null,
+      created_At: new Date(),
+    },
+  });
+
+  // Crear receptores si seccionesIds fue provisto
+  if (Array.isArray(seccionesIds) && seccionesIds.length > 0) {
+    // Obtener el máximo id actual para receptor para asegurar PK
+    const maxIdRow = await prisma.receptores.findMany({
+      orderBy: { id: "desc" },
+      take: 1,
+      select: { id: true },
+    });
+    let nextId = maxIdRow.length > 0 ? (maxIdRow[0].id + 1) : 1;
+
+    for (const secId of seccionesIds) {
+      await prisma.receptores.create({
+        data: {
+          id: nextId++,
+          idSeccion: Number(secId),
+          idComunicado: comunicado.idComunicado,
+        },
+      });
+    }
+  }
+
+  return comunicado;
+}
+
+export async function updateComunicado(idComunicado, { titulo, texto }) {
+  return prisma.comunicados.update({
+    where: { idComunicado: Number(idComunicado) },
+    data: { titulo, texto },
+  });
+}
+
+export async function deleteComunicado(idComunicado) {
+  const id = Number(idComunicado);
+  // Borrar receptores asociados primero
+  await prisma.receptores.deleteMany({ where: { idComunicado: id } });
+  // Borrar comunicado
+  return prisma.comunicados.delete({ where: { idComunicado: id } });
+}

@@ -4,6 +4,10 @@ import {
   getMateriasDashboard,
   getCedulaPersonalByUserId,
   getParticipantesBySeccion,
+  getComunicados,
+  createComunicado,
+  updateComunicado,
+  deleteComunicado,
 } from "../models/models_aulavirtual.js";
 
 import { getSemesterByDate2 } from "../models/models_admin.js";
@@ -74,5 +78,55 @@ export async function getParticipantesBySeccionController(req, res) {
     res.json(participantes);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener participantes" });
+  }
+}
+
+// ================= Comunicados (CRUD) =================
+
+export async function getComunicadosController(req, res) {
+  try {
+    const { seccionId, limit } = req.query;
+    const comunicados = await getComunicados({ seccionId, limit });
+    res.json(comunicados);
+  } catch (error) {
+    console.error("Error en getComunicadosController:", error);
+    res.status(500).json({ error: "Error al obtener comunicados" });
+  }
+}
+
+export async function postComunicadosController(req, res) {
+  try {
+    const { titulo, texto, idUsuario, seccionesIds } = req.body;
+    if (!titulo || !texto) {
+      return res.status(400).json({ error: "titulo y texto son requeridos" });
+    }
+    const comunicado = await createComunicado({ titulo, texto, idUsuario, seccionesIds });
+    res.status(201).json(comunicado);
+  } catch (error) {
+    console.error("Error en postComunicadosController:", error);
+    res.status(500).json({ error: "Error al crear comunicado" });
+  }
+}
+
+export async function putComunicadosController(req, res) {
+  try {
+    const { id } = req.params;
+    const { titulo, texto } = req.body;
+    const comunicado = await updateComunicado(id, { titulo, texto });
+    res.json(comunicado);
+  } catch (error) {
+    console.error("Error en putComunicadosController:", error);
+    res.status(500).json({ error: "Error al actualizar comunicado" });
+  }
+}
+
+export async function deleteComunicadosController(req, res) {
+  try {
+    const { id } = req.params;
+    await deleteComunicado(id);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error("Error en deleteComunicadosController:", error);
+    res.status(500).json({ error: "Error al eliminar comunicado" });
   }
 }
