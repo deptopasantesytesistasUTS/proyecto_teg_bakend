@@ -135,8 +135,17 @@ export async function getComunicados({ seccionId = null, limit = 10 } = {}) {
 }
 
 export async function createComunicado({ titulo, texto, idUsuario = null, seccionesIds = [] }) {
+  // Obtener el próximo id para Comunicados (no es autoincrement en el schema)
+  const maxComRow = await prisma.comunicados.findMany({
+    orderBy: { idComunicado: "desc" },
+    take: 1,
+    select: { idComunicado: true },
+  });
+  const nextComId = maxComRow.length > 0 ? (Number(maxComRow[0].idComunicado) + 1) : 1;
+
   const comunicado = await prisma.comunicados.create({
     data: {
+      idComunicado: nextComId,
       titulo,
       texto,
       idUsuario: idUsuario ? Number(idUsuario) : null,
