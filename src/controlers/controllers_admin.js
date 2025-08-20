@@ -156,8 +156,6 @@ export async function createNewSemester(req, res) {
 
     const inv2Borrador4 = convertFecha(newSemester.inv2Borrador4);
 
-    const inv2BorradorFinal = convertFecha(newSemester.inv2BorradorFinal);
-
     const tutInicio = convertFecha(newSemester.tutInicio);
 
     const tutFin = convertFecha(newSemester.tutFinal);
@@ -179,7 +177,6 @@ export async function createNewSemester(req, res) {
       inv2Borrador2,
       inv2Borrador3,
       inv2Borrador4,
-      inv2BorradorFinal,
       tutInicio,
       tutFin,
       newSemester.urlCronograma,

@@ -12,11 +12,15 @@ import { fileURLToPath } from "url";
 
 export async function loginUser(req, res) {
   const { correo, password } = req.body;
+  console.log(correo);
+  console.log(password);
   if (!correo || !password) {
     return res.status(400).json({ error: "Correo y contraseña son requeridos" });
   }
   try {
     const user = await getUserByCorreo(correo);
+    console.log(user);
+    console.log(password);
     if (!user) {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }

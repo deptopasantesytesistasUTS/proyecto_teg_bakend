@@ -1,7 +1,7 @@
 import prisma from "../prisma.js";
 
 export async function buscarRolAdmin() {
-  return prisma.roles.findFirst({ where: { nombre: "admin" } });
+  return prisma.roles.findFirst({ where: { nombre: "Administrador" } });
 }
 
 export async function crearUsuarioAdmin({ correo, password, roleId }) {
@@ -19,12 +19,12 @@ export async function obtenerAdministradores() {
   return prisma.users.findMany({
     where: {
       Roles: {
-        nombre: "admin"
-      }
+        nombre: "Administrador",
+      },
     },
     include: {
-      Roles: true
-    }
+      Roles: true,
+    },
   });
 }
 
