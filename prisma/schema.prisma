@@ -175,6 +175,7 @@ model Users {
   role_id     Int
   status      String        @db.VarChar(20)
   imagen      String?       @db.VarChar
+  online      Int?          @default(0)
   Comunicados Comunicados[]
   Estudiantes Estudiantes?
   Personal    Personal[]

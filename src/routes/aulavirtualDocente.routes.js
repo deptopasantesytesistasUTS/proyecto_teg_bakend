@@ -1,5 +1,5 @@
 import express from "express";
-import { crearTutoriaController, getEstudiantesPorDocente , obtenerTutoriasController , actualizarTutoriaController, eliminarTutoriaController , crearAsistenciaController , obtenerAsistenciasController } from "../controlers/aulavirtualDocente.controlers.js";
+import { crearTutoriaController, getEstudiantesPorDocente , obtenerTutoriasController , actualizarTutoriaController, eliminarTutoriaController , crearAsistenciaController , obtenerAsistenciasController, getUltimosConectadosController, getEstadisticasEntregasController } from "../controlers/aulavirtualDocente.controlers.js";
 
 const router = express.Router();
 
@@ -19,5 +19,12 @@ router.delete("/tutorias/:id", eliminarTutoriaController);
 router.post("/asistencias", crearAsistenciaController);
 router.get("/asistencias/:idSeccion", obtenerAsistenciasController);
 
+// informacion 
+
+// Últimos conectados por sección
+router.get("/secciones/:idSeccion/ultimos-conectados", getUltimosConectadosController);
+
+// Estadísticas de entregas por sección
+router.get("/secciones/:idSeccion/estadisticas-entregas", getEstadisticasEntregasController);
 
 export default router;

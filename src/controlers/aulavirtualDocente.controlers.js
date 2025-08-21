@@ -5,7 +5,9 @@ import {
   actualizarTutoria as actualizarTutoriaModel,
   eliminarTutoria as eliminarTutoriaModel,
   registrarAsistencia,
-  obtenerAsistenciasPorSeccion
+  obtenerAsistenciasPorSeccion,
+  getUltimosConectadosPorSeccion,
+  getEstadisticasEntregasPorSeccion
 } from "../models/aulavirtualDocente.models.js";
 
 export async function getEstudiantesPorDocente(req, res) {
@@ -92,5 +94,32 @@ export async function obtenerAsistenciasController(req, res) {
     res.json(asistencias);
   } catch (error) {
     res.status(500).json({ error: "Error al obtener asistencias" });
+  }
+}
+
+export async function getUltimosConectadosController(req, res) {
+  try {
+    const { idSeccion } = req.params;
+    const { limit } = req.query;
+    if (!idSeccion) {
+      return res.status(400).json({ error: "idSeccion es requerido" });
+    }
+    const users = await getUltimosConectadosPorSeccion(idSeccion, limit ?? 5);
+    res.json(users);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener últimos conectados" });
+  }
+}
+
+export async function getEstadisticasEntregasController(req, res) {
+  try {
+    const { idSeccion } = req.params;
+    if (!idSeccion) {
+      return res.status(400).json({ error: "idSeccion es requerido" });
+    }
+    const stats = await getEstadisticasEntregasPorSeccion(idSeccion);
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener estadísticas de entregas" });
   }
 }

@@ -36,6 +36,15 @@ export async function loginUser(req, res) {
         .status(401)
         .json({ error: "Usuario o contraseña incorrectos" });
     }
+    // Registrar última sesión para alimentar "últimos conectados"
+    try {
+      await prisma.users.update({
+        where: { userId: user.userId },
+        data: { last_sesion: new Date(), online: 1 },
+      });
+    } catch (e) {
+      console.error("No se pudo actualizar last_sesion:", e?.message || e);
+    }
     // Incluye el rol en el token
     const token = generarToken({ userId: user.userId, role: user.role_id, correo: user.correo });
     res.json({ token, user: { userId: user.userId, correo: user.correo, role: user.role_id } });
@@ -357,5 +366,105 @@ export async function getProfileImage(req, res) {
         message: "Error al obtener la imagen de perfil",
       });
     }
+  }
+}
+
+// Usuarios conectados (para dashboard)
+export async function getConnectedUsers(req, res) {
+  try {
+    const limit = Math.min(parseInt(req.query.limit || "10", 10), 50);
+    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const statusFilter = (req.query.status || "online").toLowerCase();
+    const where = {};
+    if (statusFilter !== "all") {
+      if (statusFilter === "online") where.online = 1;
+      if (statusFilter === "offline") where.online = 0;
+      // Para "away" usamos filtro por tiempo después; no hay bandera específica
+    }
+
+    const users = await prisma.users.findMany({
+      where,
+      include: {
+        Roles: true,
+        Estudiantes: {
+          include: {
+            Carreras: true,
+          },
+        },
+        Personal: true,
+      },
+      orderBy: [{ last_sesion: "desc" }],
+      take: limit,
+    });
+
+    const now = Date.now();
+    const result = users.map((u) => {
+      const lastSesionMs = u.last_sesion ? new Date(u.last_sesion).getTime() : 0;
+      const diffMin = lastSesionMs ? Math.floor((now - lastSesionMs) / (1000 * 60)) : Infinity;
+      let status = "offline";
+      if (u.online === 1) {
+        status = "online";
+      } else if (diffMin <= 60) {
+        status = "away";
+      }
+
+      const roleName = u.Roles?.nombre || String(u.role_id);
+      const isStudent = u.role_id === 3 || /estudiante/i.test(roleName || "");
+      const isTeacher = u.role_id === 2 || /docente/i.test(roleName || "");
+
+      const student = u.Estudiantes || null;
+      const teacher = Array.isArray(u.Personal) ? u.Personal[0] : u.Personal;
+
+      const name = [
+        (isStudent ? student?.nombre1 : teacher?.nombre1) || "",
+        (isStudent ? student?.nombre2 : teacher?.nombre2) || "",
+        (isStudent ? student?.apellido1 : teacher?.apellido1) || "",
+        (isStudent ? student?.apellido2 : teacher?.apellido2) || "",
+      ]
+        .filter(Boolean)
+        .join(" ") || u.correo;
+
+      const department = isStudent
+        ? student?.Carreras?.nombre || "Estudiante"
+        : isTeacher
+        ? "Docente"
+        : "Administrador";
+
+      return {
+        id: u.userId,
+        name,
+        avatar: `${baseUrl}/api/user/profileImage/${u.userId}`,
+        status,
+        role: roleName || "Usuario",
+        department,
+        lastSeen: lastSesionMs || now, // número en ms para compatibilidad con frontend
+      };
+    });
+
+    const filtered = statusFilter === "all"
+      ? result
+      : result.filter((u) => (u.status || "").toLowerCase() === statusFilter);
+    res.json(filtered);
+  } catch (error) {
+    console.error("Error getConnectedUsers:", error);
+    res.status(500).json({ error: "Error al obtener usuarios conectados" });
+  }
+}
+
+// Logout: marcar usuario como offline
+export async function logoutUser(req, res) {
+  try {
+    const userId = parseInt(req.body?.userId || req.query?.userId, 10);
+    if (!userId || Number.isNaN(userId)) {
+      return res.status(400).json({ error: "userId es requerido" });
+    }
+    await prisma.users.update({
+      where: { userId },
+      data: { online: 0, last_sesion: new Date() },
+    });
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Error logoutUser:", error);
+    return res.status(500).json({ error: "Error al cerrar sesión" });
   }
 }
