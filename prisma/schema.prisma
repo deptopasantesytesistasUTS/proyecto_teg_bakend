@@ -201,6 +201,7 @@ model lapsoAcac {
   fechaGenCarta                            DateTime?   @db.Date
   fechaEntInst                             DateTime?   @db.Date
   urlCronograma                            String?     @db.VarChar
+  urlCronograma2                           String?     @db.VarChar
   Matricula_Matricula_lapsoAcacTolapsoAcac Matricula[] @relation("Matricula_lapsoAcacTolapsoAcac")
   Secciones                                Secciones[]
 }

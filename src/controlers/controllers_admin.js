@@ -75,6 +75,7 @@ export async function getSemesterInfo(req, res) {
         urlCronograma: semester.urlCronograma,
         cartaDate: semester.fechaGenCarta,
         fechaEntInst: semester.fechaEntInst,
+        urlCronograma2: semester.urlCronograma2,
       },
     });
   } catch (error) {
@@ -186,7 +187,8 @@ export async function createNewSemester(req, res) {
       tutFin,
       newSemester.urlCronograma,
       cartaDate,
-      fechaEntInst
+      fechaEntInst,
+      newSemester.urlCronograma2
     );
 
     if (!semester) {
@@ -236,6 +238,7 @@ export async function editSemester(req, res) {
       urlCronograma: editSemester.urlCronograma,
       fechaGenCarta: convertFecha(editSemester.cartaDate),
       fechaEntInst: convertFecha(editSemester.fechaEntInst),
+      urlCronograma2: editSemester.urlCronograma2,
     });
 
     if (!editSemester) {

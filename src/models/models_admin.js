@@ -54,7 +54,8 @@ export async function createSemester(
   fechaTutFin,
   urlCronograma,
   fechaGenCarta,
-  fechaEntInst
+  fechaEntInst,
+  urlCronograma2,
 ) {
   return prisma.lapsoAcac.create({
     data: {
@@ -75,6 +76,7 @@ export async function createSemester(
       urlCronograma: urlCronograma,
       fechaGenCarta: fechaGenCarta,
       fechaEntInst: fechaEntInst,
+      urlCronograma2: urlCronograma2,
     },
   });
 }
