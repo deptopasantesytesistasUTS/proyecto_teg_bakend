@@ -18,6 +18,8 @@ import {
   deleteMatricula,
   assignJudges,
   getJudges,
+  putAccess,
+  putTitleA,
 } from "../controlers/controllers_admin.js";
 
 const router = express.Router();
@@ -146,5 +148,17 @@ router.post("/secciones", postSeccion);
 
 //borrar Matriculas
 router.delete("/matriculas", deleteMatricula);
+
+router.put("/estudiante/changeInfo", putDatosPersonales);
+
+router.put("/estudiante/changeTelf", putTelf);
+
+router.put("/estudiante/changeCorreo", putCorreo);
+
+router.put("/estudiante/restorePassword",putPassword);
+
+router.put("/estudiante/setAccess", putAccess);
+
+router.put("/estudiante/assign-Title",putTitleA);
 
 export default router;

@@ -161,6 +161,8 @@ export async function updateTitles(
   });
 }
 
+
+
 export async function updateURLTitles(url,lapso,cedula,materiaId) {
   return prisma.matricula.update({
     data: {
@@ -210,6 +212,34 @@ export async function getTitlesInfo(lapso, cedula, materiaId) {
       lugar1Movil: true,
       lugar2Movil: true,
       lugar3Movil: true,
+    },
+    where: {
+      lapsoAcac: lapso,
+      // The `cedula` parameter should correspond to the `idEstudiante` field.
+      idEstudiante: cedula,
+      // The `is` operator is used here because `Secciones` is likely a one-to-one relationship
+      // with `matricula` in your schema.
+      Secciones: {
+        is: {
+          Materias: {
+            // Materias is likely a one-to-one or one-to-many relationship with Secciones
+            is: {
+              idMateria: materiaId,
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+export async function getTituloElegidoInfo(lapso, cedula, materiaId) {
+  return prisma.matricula.findFirst({
+    select: {
+      titulo1: true,
+      titulo2: true,
+      titulo3: true,
+      tituloElegido: true,
     },
     where: {
       lapsoAcac: lapso,

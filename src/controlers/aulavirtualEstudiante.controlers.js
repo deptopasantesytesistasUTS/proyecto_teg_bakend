@@ -9,6 +9,7 @@ import {
   getAllStudentsTitles,
   getEnlacesInfo,
   getCategoria,
+  getTituloElegidoInfo,
 } from "../models/aulavirtualEstudiantes.models.js";
 import { getSemesterByDate2 } from "../models/models_admin.js";
 import { getUserById } from "../models/models_login.js";
@@ -80,6 +81,34 @@ export async function uploadTitles(req, res) {
 
     res.json({
       ok: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export async function getTitleAs(req, res) {
+  try {
+    const { userId, idMateria } = req.params;
+    const cedula = await getCedulaEstudianteByUserId(parseInt(userId));
+    if (!cedula) {
+      res.status(404).json({ message: "Estudiante no encontrado" });
+    }
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    const titleInfo = await getTituloElegidoInfo(
+      lapso.id,
+      cedula,
+      parseInt(idMateria)
+    );
+
+    res.json({
+      titulo: titleInfo?.[`titulo${titleInfo.tituloElegido}`],
     });
   } catch (error) {
     console.log(error);

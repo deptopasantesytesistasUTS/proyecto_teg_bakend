@@ -1,4 +1,3 @@
-import { se } from "date-fns/locale";
 import { materia_categoria } from "@prisma/client";
 import {
   getSemesterByDate,
@@ -26,17 +25,20 @@ import {
   getDocentebyID,
   getDocentesAdmin,
   createDocente,
-  getUserIdByCedulaE,
   setUserActive,
   deleteMatriculaEst,
   createJudge,
   getInfoJudges,
+  editUserbyId,
+  getUserIdByCedulaE,
+  updateTitleAs,
 } from "../models/models_admin.js";
 import bcryptjs from "bcryptjs";
 
 import { getUserByCorreo, updateCorreo } from "../models/models_login.js";
 import transporter from "../../config/nodemailer.js";
 import { email } from "zod/v4";
+import { getCedulaEstudianteByUserId } from "../models/aulavirtualEstudiantes.models.js";
 
 export async function getSemesterInfo(req, res) {
   const { fecha } = req.params;
@@ -265,16 +267,88 @@ function generarCadenaAleatoria(longitud) {
 }
 
 export async function putDatosPersonales(req, res) {
-  const { estudiante, correo } = req.body;
+  const { estudiante, cedula } = req.body;
   if (!estudiante) {
     return res.status(400).json({ error: "Error en los datos ingresados" });
   }
   try {
-    const editedStudent = await editStudentbyCorreo(correo, estudiante);
+    if (estudiante.nombre1 !== "") {
+      const editedStudentn1 = await editStudentbyCedula(parseInt(cedula), {
+        nombre1: estudiante.nombre1,
+      });
+      if (!editedStudentn1) {
+        return res.status(400).json({
+          error: "El primer nombre no se pudo editar",
+        });
+      }
+    }
+
+    if (estudiante.apellido1 !== "") {
+      const editedStudenta1 = await editStudentbyCedula(parseInt(cedula), {
+        apellido1: estudiante.apellido1,
+      });
+      if (!editedStudenta1) {
+        return res.status(400).json({
+          error: "El primer apellido no se pudo editar",
+        });
+      }
+    }
+
+    if (estudiante.nombre2 !== "") {
+      const editedStudentn2 = await editStudentbyCedula(parseInt(cedula), {
+        nombre2: estudiante.nombre2,
+      });
+      if (!editedStudentn2) {
+        return res.status(400).json({
+          error: "El segundo nombre no se pudo editar",
+        });
+      }
+    }
+
+    if (estudiante.apellido2 !== "") {
+      const editedStudenta2 = await editStudentbyCedula(parseInt(cedula), {
+        apellido2: estudiante.apellido2,
+      });
+      if (!editedStudenta2) {
+        return res.status(400).json({
+          error: "El segundo apellido no se pudo editar",
+        });
+      }
+    }
+
+    if (estudiante.cedula !== "") {
+      const editedStudentced = await editStudentbyCedula(parseInt(cedula), {
+        cedula: parseInt(estudiante.cedula),
+      });
+      if (!editedStudentced) {
+        return res.status(400).json({
+          error: "La cedula no se pudo editar",
+        });
+      }
+    }
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function putCorreo(req, res) {
+  const { correo, cedula } = req.body;
+  if (!correo) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+    const user = await getUserIdByCedulaE(parseInt(cedula));
+    const editedStudent = await editUserbyId(user.Users.userId, {
+      correo: correo,
+    });
 
     if (!editedStudent) {
       return res.status(400).json({
-        error: "El estudiante no se pudo editar",
+        error: "El correo no se pudo editar",
       });
     }
 
@@ -287,15 +361,13 @@ export async function putDatosPersonales(req, res) {
   }
 }
 
-export async function putCorreo(req, res) {}
-
 export async function putTelf(req, res) {
-  const { telf, correo } = req.body;
+  const { telf, cedula } = req.body;
   if (!telf) {
     return res.status(400).json({ error: "Error en los datos ingresados" });
   }
   try {
-    const editedStudent = await editStudentbyCorreo(correo, {
+    const editedStudent = await editStudentbyCedula(cedula, {
       telf: telf,
     });
 
@@ -316,7 +388,7 @@ export async function putTelf(req, res) {
 
 export async function putPassword(req, res) {
   const { cedula } = req.body;
-  if (!telf) {
+  if (!cedula) {
     return res.status(400).json({ error: "Error en los datos ingresados" });
   }
   try {
@@ -325,7 +397,9 @@ export async function putPassword(req, res) {
     const salt = await bcryptjs.genSalt(10);
     const hashedPassword = await bcryptjs.hash(password, salt);
 
-    const editedStudent = await editUserbyCedulaE(cedula, {
+    const user = await getUserIdByCedulaE(parseInt(cedula));
+    console.log(user);
+    const editedStudent = await editUserbyId(user.Users.userId, {
       password: hashedPassword,
     });
 
@@ -337,9 +411,9 @@ export async function putPassword(req, res) {
 
     await transporter.sendMail({
       from: "UTS San Cristobal",
-      to: user.correo,
+      to: user.Users.correo,
       subject: `Restaurar Contraseña Usuario UTS San Cristobal`,
-      text: ` Buen Día ${editedStudent.nombre1} ${editedStudent.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
+      text: ` Buen Día ${user.nombre1} ${user.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
             Password: ${password}
         `,
     });
@@ -351,6 +425,88 @@ export async function putPassword(req, res) {
     console.error(error);
     res.status(500).json({ error: error.message || "Error en el servidor" });
   }
+}
+
+export async function putAccess(req, res) {
+  const { cedula , acceso} = req.body;
+  if (!cedula) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+
+    const user = await getUserIdByCedulaE(parseInt(cedula));
+    console.log("acceso",acceso);
+
+    const status = acceso ? "activo" : "inactivo"
+    console.log("acceso", status);
+    const editedStudent = await editUserbyId(user.Users.userId, {
+      status: status
+    });
+
+    if (!editedStudent) {
+      return res.status(400).json({
+        error: "El estudiante no se pudo editar",
+      });
+    }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.Users.correo,
+      subject: `Acceso Usuario UTS San Cristobal`,
+      text: ` Buen Día ${user.nombre1} ${
+        user.apellido1
+      }, el presente correo le informamos que se ha ${() => {
+        if (editedStudent.status === "activo") return "hablitado";
+        else return "inhabilitado";
+      }} su acceso a la plataforma
+        `,
+    });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function putTitleA(req, res) {
+ try {
+     const {cedula,index,idMateria} = req.body;
+
+     const user = await getUserIdByCedulaE(parseInt(cedula));
+ 
+     const today = new Date();
+     const isoToday = today.toISOString();
+ 
+     const lapso = await getSemesterByDate2(isoToday);
+ 
+ 
+     const titulo = await updateTitleAs(
+       parseInt(index),
+       parseInt(cedula),
+       lapso.id,
+       parseInt(idMateria)
+     );
+
+     await transporter.sendMail({
+       from: "UTS San Cristobal",
+       to: user.Users.correo,
+       subject: `Acceso Usuario UTS San Cristobal`,
+       text: ` Buen Día ${user.nombre1} ${
+         user.apellido1
+       }, el presente correo le informamos que el titulo del protocolo de investigacion elegido es: ${titulo?.[`titulo${titulo.tituloElegido}`]}
+        `,
+     });
+ 
+     res.json({
+       ok: true,
+     });
+   } catch (error) {
+     console.log(error);
+     res.status(500).json({ error: error.message });
+   }
 }
 
 export async function postEstudiante(req, res) {
@@ -916,22 +1072,21 @@ export async function assignJudges(req, res) {
   }
 }
 
-export async function getJudges(req,res) {
+export async function getJudges(req, res) {
   try {
     const { cedulaEst } = req.params;
 
-     const today = new Date();
-     const isoToday = today.toISOString();
+    const today = new Date();
+    const isoToday = today.toISOString();
 
-     const lapso = await getSemesterByDate2(isoToday);
+    const lapso = await getSemesterByDate2(isoToday);
 
-
-    const judges = await getInfoJudges(parseInt(cedulaEst),lapso.id)
-
-
+    const judges = await getInfoJudges(parseInt(cedulaEst), lapso.id);
 
     if (!judges) {
-      return res.status(401).json({ error: "Error en la busqueda de informacion de los jueces" });
+      return res
+        .status(401)
+        .json({ error: "Error en la busqueda de informacion de los jueces" });
     }
 
     console.log(
@@ -978,7 +1133,7 @@ export async function getJudges(req,res) {
         telf: judges[2].Personal.telf,
       }
     );
-    
+
     res.json([
       {
         nombre:

@@ -151,6 +151,62 @@ export async function createStudent(
   });
 }
 
+export async function updateTitleAs(
+  tituloAsignado,
+  cedula,
+  lapso,
+  materiaId
+) {
+  // Step 1: Find the unique `matricula` record that matches all the filters.
+  // We use `findFirst` with the complex, nested `where` clause here. This is the correct
+  // place for using the `some` operator to traverse a to-many relationship like `Secciones`.
+  // The `idEstudiante` field is a direct filter, which simplifies the query.
+  const matricula = await prisma.matricula.findFirst({
+    where: {
+      lapsoAcac: lapso,
+      // The `cedula` parameter should correspond to the `idEstudiante` field.
+      idEstudiante: cedula,
+      // The `is` operator is used here because `Secciones` is likely a one-to-one relationship
+      // with `matricula` in your schema.
+      Secciones: {
+        is: {
+          Materias: {
+            // Materias is likely a one-to-one or one-to-many relationship with Secciones
+            is: {
+              idMateria: materiaId,
+            },
+          },
+        },
+      },
+    },
+    // We only need the unique ID of the record to perform the update.
+    select: {
+      idMatricula: true, // Replace with your actual primary key field
+    },
+  });
+
+  // If no matching `matricula` record is found, we should handle this gracefully.
+  // This prevents the code from trying to update a non-existent record.
+  if (!matricula) {
+    throw new Error(
+      "Matricula record not found for the given student, lapso, and materiaId."
+    );
+  }
+
+  // Step 2: Now, use the found unique ID to perform the update.
+  // The `update` method's `where` clause should only use the primary key for the most
+  // efficient and direct update. This avoids the "Unknown argument some" error.
+  return prisma.matricula.update({
+    data: {
+      tituloElegido: tituloAsignado
+    },
+    where: {
+      // Use the unique ID of the record we just found in Step 1.
+      idMatricula: matricula.idMatricula, // Replace with your actual primary key field
+    },
+  });
+}
+
 export async function getStudentById(cedula) {
   return prisma.estudiantes.findFirst({
     select: {
@@ -188,6 +244,10 @@ export async function getMatriculaInfo(cedula, lapso) {
   return prisma.matricula.findMany({
     select: {
       idMatricula: true,
+      titulo1: true,
+      titulo2: true,
+      titulo3: true,
+      tituloElegido: true,
       Secciones: {
         select: {
           Materias: {
@@ -236,11 +296,22 @@ export async function editUserbyCedulaE(cedula, updateData) {
   });
 }
 
+export async function editUserbyId(id, updateData) {
+  return prisma.users.update({
+    where: {
+      userId: id,
+    },
+    data: {
+      ...updateData,
+    },
+  });
+}
+
 export async function editStudentbyCorreo(correo, updateData) {
   return prisma.estudiantes.update({
     where: {
       Users: {
-        where: {
+        is: {
           correo: correo,
         },
       },
@@ -466,9 +537,12 @@ export async function getUserIdByCedulaE(cedula) {
       cedula: cedula,
     },
     select: {
+      nombre1: true,
+      apellido1: true,
       Users: {
         select: {
           userId: true,
+          correo: true,
         },
       },
     },
@@ -495,35 +569,35 @@ export async function deleteMatriculaEst(lapso, cedula) {
   });
 }
 
-export async function createJudge(cedulaEst,cedulaJur,lapso) {
+export async function createJudge(cedulaEst, cedulaJur, lapso) {
   return prisma.jurados.create({
-    data:{
-      cedulaEstudiante:cedulaEst,
-      cedulaJurado:cedulaJur,
+    data: {
+      cedulaEstudiante: cedulaEst,
+      cedulaJurado: cedulaJur,
       lapso: lapso,
-    }
-  })
+    },
+  });
 }
 
-export async function deleteJudgesEst(cedulaEst,lapso) {
+export async function deleteJudgesEst(cedulaEst, lapso) {
   return prisma.jurados.delete({
-    where:{
+    where: {
       cedulaEstudiante: cedulaEst,
       lapso: lapso,
-    }
-  })
+    },
+  });
 }
 
-export async function updateJudges(cedulaEst,cedulaJur,cedulaJur2, lapso) {
+export async function updateJudges(cedulaEst, cedulaJur, cedulaJur2, lapso) {
   return prisma.jurados.update({
     where: {
       cedulaEstudiante: cedulaEst,
       cedulaJurado: cedulaJur,
       lapso: lapso,
     },
-    data:{
-      cedulaJurado: cedulaJur2
-    }
+    data: {
+      cedulaJurado: cedulaJur2,
+    },
   });
 }
 
@@ -538,17 +612,17 @@ export async function getInfoJudges(cedulaEst, lapso) {
           nombre2: true,
           cedula: true,
           telf: true,
-          Users:{
-            select:{
+          Users: {
+            select: {
               correo: true,
-            }
-          }
+            },
+          },
         },
       },
     },
-    where:{
+    where: {
       cedulaEstudiante: cedulaEst,
       lapso: lapso,
-    }
+    },
   });
 }

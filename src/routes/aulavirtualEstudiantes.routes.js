@@ -11,6 +11,11 @@ const router = express.Router();
    controllers.getTitlesAula
  );
 
+ router.get(
+   "/estudiante/tituloElegido/:userId/:idMateria",
+   controllers.getTitleAs
+ );
+
  router.put("/estudiante/archivos",controllers.putURLsMatricula);
 
  router.get("/estudiante/profile/:userId/:idMateria",controllers.getStudentData);
