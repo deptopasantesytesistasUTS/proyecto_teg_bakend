@@ -10,7 +10,6 @@ import aulavirtualRoutes from "./routes/aulavirtual.routes.js";
 import aulavirtualEstudiantesRoutes from "./routes/aulavirtualEstudiantes.routes.js";
 import superUserRoutes from "./routes/superUser.routes.js";
 import aulavirtualDocenteRoutes from "./routes/aulavirtualDocente.routes.js";
-
 const app = express();
 
 // Habilita CORS para el frontend antes de las rutas
@@ -56,7 +55,8 @@ app.use("/api", adminRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api", aulavirtualRoutes);
 app.use("/api", aulavirtualEstudiantesRoutes);
-app.use("/api", aulavirtualDocenteRoutes);
+app.use("/api/aulavirtualDocente", aulavirtualDocenteRoutes);
+app.use("/api/aulavirtual-Docente", aulavirtualDocenteRoutes);
 app.use("/api", generalInfo);
 app.use("/api", superUserRoutes);
 

@@ -270,6 +270,7 @@ export async function getStudentListA(lapso) {
       nombre2: true,
       apellido1: true,
       apellido2: true,
+      localidad: true,
       Carreras: {
         select: {
           nombre: true,
@@ -426,6 +427,7 @@ export async function getDocentesAdmin() {
       nombre2: true,
       apellido1: true,
       apellido2: true,
+      localidad: true,
       Users: {
         select: {
           correo: true,

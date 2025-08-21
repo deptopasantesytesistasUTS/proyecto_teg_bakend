@@ -508,6 +508,7 @@ export async function getStudentListAdmin(req, res) {
           }),
           status: est.Users.status,
           email: est.Users.correo,
+          localidad: est.localidad,
         };
       }),
     });
@@ -760,6 +761,7 @@ export async function getDocentes(req, res) {
         cedula: profesor.cedula,
         correo: profesor.Users.correo,
         estatus: profesor.Users.status,
+        localidad : profesor.localidad,
         nombre:
           profesor.nombre1 +
           " " +

@@ -14,7 +14,7 @@ model Asistencias {
   idEstudiante Int?
   asistencia   Boolean?
   Estudiantes  Estudiantes? @relation(fields: [idEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_estudiante")
-  Tutorias     Tutorias?    @relation(fields: [idTutoria], references: [idTutoria], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_tutoria")
+  Tutorias     Tutorias?    @relation(fields: [idTutoria], references: [tutorias_pk], onDelete: NoAction, onUpdate: NoAction, map: "fk_asistencias_tutoria")
 }
 
 model Carreras {
@@ -43,7 +43,7 @@ model Estudiantes {
   telf        String?       @db.VarChar
   idCarrera   Int?
   idUsuario   Int?          @unique
-  promedio    Float?
+  localidad   String?       @db.VarChar
   Asistencias Asistencias[]
   Carreras    Carreras?     @relation(fields: [idCarrera], references: [idCarrera], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_carrera")
   Users       Users?        @relation(fields: [idUsuario], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiantes_usuario")
@@ -55,10 +55,8 @@ model Jurados {
   id               Int          @id @default(autoincrement())
   cedulaJurado     Int?
   cedulaEstudiante Int?
-  lapso            Int?
   Estudiantes      Estudiantes? @relation(fields: [cedulaEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_cedula")
   Personal         Personal?    @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
-  lapsoAcac        lapsoAcac?   @relation(fields: [lapso], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_lapso")
 }
 
 model Materias {
@@ -122,6 +120,7 @@ model Personal {
   apellido2 String?     @db.VarChar
   telf      String?     @db.VarChar
   userID    Int?
+  localidad String?     @db.VarChar
   Jurados   Jurados[]
   Users     Users?      @relation(fields: [userID], references: [userId], onDelete: NoAction, onUpdate: NoAction, map: "fk_personal_user")
   Secciones Secciones[]
@@ -158,7 +157,7 @@ model Secciones {
 }
 
 model Tutorias {
-  idTutoria   Int           @id(map: "tutorias_pk")
+  tutorias_pk Int           @id @default(autoincrement())
   fecha       DateTime?     @db.Date
   idSeccion   Int?
   Asistencias Asistencias[]
@@ -201,7 +200,6 @@ model lapsoAcac {
   fechaGenCarta                            DateTime?   @db.Date
   fechaEntInst                             DateTime?   @db.Date
   urlCronograma                            String?     @db.VarChar
-  Jurados                                  Jurados[]
   Matricula_Matricula_lapsoAcacTolapsoAcac Matricula[] @relation("Matricula_lapsoAcacTolapsoAcac")
   Secciones                                Secciones[]
 }
