@@ -242,6 +242,30 @@ export async function getStudentById(cedula) {
   });
 }
 
+
+export async function getTeacherById(cedula) {
+  return prisma.personal.findFirst({
+    select: {
+      cedula: true,
+      nombre1: true,
+      nombre2: true,
+      apellido1: true,
+      apellido2: true,
+      telf: true,
+      Users: {
+        select: {
+          userId: true,
+          correo: true,
+          status: true,
+        },
+      },
+    },
+    where: {
+      cedula: cedula,
+    },
+  });
+}
+
 export async function getMatriculaInfo(cedula, lapso) {
   return prisma.matricula.findMany({
     select: {
@@ -326,6 +350,17 @@ export async function editStudentbyCorreo(correo, updateData) {
 
 export async function editStudentbyCedula(cedula, updateData) {
   return prisma.estudiantes.update({
+    where: {
+      cedula: cedula,
+    },
+    data: {
+      ...updateData,
+    },
+  });
+}
+
+export async function editPersonalbyCedula(cedula, updateData) {
+  return prisma.personal.update({
     where: {
       cedula: cedula,
     },
@@ -553,6 +588,24 @@ export async function getUserIdByCedulaE(cedula) {
   });
 }
 
+export async function getUserIdByCedulaP(cedula) {
+  return prisma.personal.findFirst({
+    where: {
+      cedula: cedula,
+    },
+    select: {
+      nombre1: true,
+      apellido1: true,
+      Users: {
+        select: {
+          userId: true,
+          correo: true,
+        },
+      },
+    },
+  });
+}
+
 export async function setUserActive(id, active) {
   return prisma.users.update({
     where: {
@@ -574,13 +627,26 @@ export async function deleteMatriculaEst(lapso, cedula) {
 }
 
 export async function createJudge(cedulaEst, cedulaJur, lapso) {
-  return prisma.jurados.create({
-    data: {
-      cedulaEstudiante: cedulaEst,
-      cedulaJurado: cedulaJur,
-      lapso: lapso,
-    },
-  });
+  try {
+    return await prisma.jurados.create({
+      data: {
+        lapso: lapso,
+        Estudiantes: {
+          connect: {
+            cedula: cedulaEst,
+          },
+        },
+        Personal: {
+          connect: {
+            cedula: cedulaJur,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error al crear el jurado:", error);
+    throw error;
+  }
 }
 
 export async function deleteJudgesEst(cedulaEst, lapso) {
