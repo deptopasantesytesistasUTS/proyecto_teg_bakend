@@ -55,6 +55,7 @@ model Jurados {
   id               Int          @id @default(autoincrement())
   cedulaJurado     Int?
   cedulaEstudiante Int?
+  lapso            Int?
   Estudiantes      Estudiantes? @relation(fields: [cedulaEstudiante], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_estudiante_cedula")
   Personal         Personal?    @relation(fields: [cedulaJurado], references: [cedula], onDelete: NoAction, onUpdate: NoAction, map: "fk_jurados_cedula")
 }

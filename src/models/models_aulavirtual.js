@@ -65,7 +65,7 @@ export async function getMateriasDashboard(userId, role,lapso) {
     if (!docente) return [];
     // 2. Buscar materias donde el docente imparte la sección
     const secciones = await prisma.secciones.findMany({
-      where: { idDocente: docente.cedula, lapsoAcac: lapso },
+      where: { idDocente: docente.cedula, lapsoAcad: lapso },
       include: {
         Materias: { include: { Carreras: true } },
       },

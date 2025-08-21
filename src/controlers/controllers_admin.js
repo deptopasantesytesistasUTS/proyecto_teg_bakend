@@ -32,6 +32,9 @@ import {
   editUserbyId,
   getUserIdByCedulaE,
   updateTitleAs,
+  getTeacherById,
+  editPersonalbyCedula,
+  getUserIdByCedulaP,
 } from "../models/models_admin.js";
 import bcryptjs from "bcryptjs";
 
@@ -335,6 +338,75 @@ export async function putDatosPersonales(req, res) {
   }
 }
 
+export async function putDatosPersonalesDoc(req, res) {
+  const { docente, cedula } = req.body;
+  if (!docente) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+    if (docente.nombre1 !== "") {
+      const editedStudentn1 = await editPersonalbyCedula(parseInt(cedula), {
+        nombre1: docente.nombre1,
+      });
+      if (!editedStudentn1) {
+        return res.status(400).json({
+          error: "El primer nombre no se pudo editar",
+        });
+      }
+    }
+
+    if (docente.apellido1 !== "") {
+      const editedStudenta1 = await editPersonalbyCedula(parseInt(cedula), {
+        apellido1: docente.apellido1,
+      });
+      if (!editedStudenta1) {
+        return res.status(400).json({
+          error: "El primer apellido no se pudo editar",
+        });
+      }
+    }
+
+    if (docente.nombre2 !== "") {
+      const editedStudentn2 = await editPersonalbyCedula(parseInt(cedula), {
+        nombre2: docente.nombre2,
+      });
+      if (!editedStudentn2) {
+        return res.status(400).json({
+          error: "El segundo nombre no se pudo editar",
+        });
+      }
+    }
+
+    if (docente.apellido2 !== "") {
+      const editedStudenta2 = await editPersonalbyCedula(parseInt(cedula), {
+        apellido2: docente.apellido2,
+      });
+      if (!editedStudenta2) {
+        return res.status(400).json({
+          error: "El segundo apellido no se pudo editar",
+        });
+      }
+    }
+
+    if (docente.cedula !== "") {
+      const editedStudentced = await editPersonalbyCedula(parseInt(cedula), {
+        cedula: parseInt(docente.cedula),
+      });
+      if (!editedStudentced) {
+        return res.status(400).json({
+          error: "La cedula no se pudo editar",
+        });
+      }
+    }
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
 export async function putCorreo(req, res) {
   const { correo, cedula } = req.body;
   if (!correo) {
@@ -361,6 +433,33 @@ export async function putCorreo(req, res) {
   }
 }
 
+export async function putCorreoDoc(req, res) {
+  const { correo, cedula } = req.body;
+  if (!correo) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+    const user = await getUserIdByCedulaP(parseInt(cedula));
+    const editedStudent = await editUserbyId(user.Users.userId, {
+      correo: correo,
+    });
+
+    if (!editedStudent) {
+      return res.status(400).json({
+        error: "El correo no se pudo editar",
+      });
+    }
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+
 export async function putTelf(req, res) {
   const { telf, cedula } = req.body;
   if (!telf) {
@@ -368,6 +467,31 @@ export async function putTelf(req, res) {
   }
   try {
     const editedStudent = await editStudentbyCedula(cedula, {
+      telf: telf,
+    });
+
+    if (!editedStudent) {
+      return res.status(400).json({
+        error: "El estudiante no se pudo editar",
+      });
+    }
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function putTelfDoc(req, res) {
+  const { telf, cedula } = req.body;
+  if (!telf) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+    const editedStudent = await editPersonalbyCedula(cedula, {
       telf: telf,
     });
 
@@ -427,20 +551,60 @@ export async function putPassword(req, res) {
   }
 }
 
-export async function putAccess(req, res) {
-  const { cedula , acceso} = req.body;
+export async function putPasswordDoc(req, res) {
+  const { cedula } = req.body;
   if (!cedula) {
     return res.status(400).json({ error: "Error en los datos ingresados" });
   }
   try {
+    const password = generarCadenaAleatoria(8);
 
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(password, salt);
+
+    const user = await getUserIdByCedulaP(parseInt(cedula));
+    console.log(user);
+    const editedStudent = await editUserbyId(user.Users.userId, {
+      password: hashedPassword,
+    });
+
+    if (!editedStudent) {
+      return res.status(400).json({
+        error: "El estudiante no se pudo editar",
+      });
+    }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.Users.correo,
+      subject: `Restaurar Contraseña Usuario UTS San Cristobal`,
+      text: ` Buen Día ${user.nombre1} ${user.apellido1}, el presente correo le hacemos llegar la contraseña de su usuario para ingresar a la plataforma 
+            Password: ${password}
+        `,
+    });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+export async function putAccess(req, res) {
+  const { cedula, acceso } = req.body;
+  if (!cedula) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
     const user = await getUserIdByCedulaE(parseInt(cedula));
-    console.log("acceso",acceso);
+    console.log("acceso", acceso);
 
-    const status = acceso ? "activo" : "inactivo"
+    const status = acceso ? "activo" : "inactivo";
     console.log("acceso", status);
     const editedStudent = await editUserbyId(user.Users.userId, {
-      status: status
+      status: status,
     });
 
     if (!editedStudent) {
@@ -471,42 +635,87 @@ export async function putAccess(req, res) {
   }
 }
 
-export async function putTitleA(req, res) {
- try {
-     const {cedula,index,idMateria} = req.body;
+export async function putAccessDoc(req, res) {
+  const { cedula, acceso } = req.body;
+  if (!cedula) {
+    return res.status(400).json({ error: "Error en los datos ingresados" });
+  }
+  try {
+    const user = await getUserIdByCedulaP(parseInt(cedula));
+    console.log("acceso", acceso);
 
-     const user = await getUserIdByCedulaE(parseInt(cedula));
- 
-     const today = new Date();
-     const isoToday = today.toISOString();
- 
-     const lapso = await getSemesterByDate2(isoToday);
- 
- 
-     const titulo = await updateTitleAs(
-       parseInt(index),
-       parseInt(cedula),
-       lapso.id,
-       parseInt(idMateria)
-     );
+    const status = acceso ? "activo" : "inactivo";
+    console.log("acceso", status);
+    const editedStudent = await editUserbyId(user.Users.userId, {
+      status: status,
+    });
 
-     await transporter.sendMail({
-       from: "UTS San Cristobal",
-       to: user.Users.correo,
-       subject: `Acceso Usuario UTS San Cristobal`,
-       text: ` Buen Día ${user.nombre1} ${
-         user.apellido1
-       }, el presente correo le informamos que el titulo del protocolo de investigacion elegido es: ${titulo?.[`titulo${titulo.tituloElegido}`]}
+    if (!editedStudent) {
+      return res.status(400).json({
+        error: "El estudiante no se pudo editar",
+      });
+    }
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.Users.correo,
+      subject: `Acceso Usuario UTS San Cristobal`,
+      text: ` Buen Día ${user.nombre1} ${
+        user.apellido1
+      }, el presente correo le informamos que se ha ${() => {
+        if (editedStudent.status === "activo") return "hablitado";
+        else return "inhabilitado";
+      }} su acceso a la plataforma
         `,
-     });
- 
-     res.json({
-       ok: true,
-     });
-   } catch (error) {
-     console.log(error);
-     res.status(500).json({ error: error.message });
-   }
+    });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
+
+export async function putTitleA(req, res) {
+  try {
+    const { cedula, index, idMateria } = req.body;
+
+    const user = await getUserIdByCedulaE(parseInt(cedula));
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    const titulo = await updateTitleAs(
+      parseInt(index),
+      parseInt(cedula),
+      lapso.id,
+      parseInt(idMateria)
+    );
+
+    await transporter.sendMail({
+      from: "UTS San Cristobal",
+      to: user.Users.correo,
+      subject: `Acceso Usuario UTS San Cristobal`,
+      text: ` Buen Día ${user.nombre1} ${
+        user.apellido1
+      }, el presente correo le informamos que el titulo del protocolo de investigacion elegido es: ${
+        titulo?.[`titulo${titulo.tituloElegido}`]
+      }
+        `,
+    });
+
+    res.json({
+      ok: true,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: error.message });
+  }
 }
 
 export async function postEstudiante(req, res) {
@@ -723,6 +932,41 @@ export async function getStudentProfile(req, res) {
   }
 }
 
+export async function getTeacherProfile(req, res) {
+  const { cedula } = req.params;
+
+  try {
+    const profesor = await getTeacherById(parseInt(cedula));
+
+    if (!profesor) {
+      return res.status(404).json({
+        error: "Profesor no encontrado",
+      });
+    }
+
+    const today = new Date();
+    const isoToday = today.toISOString();
+
+    const lapso = await getSemesterByDate2(isoToday);
+
+    if (!lapso) {
+      console.log("🔍 getStudentProfile - No se encontró lapso académico");
+      return res
+        .status(401)
+        .json({ error: "Error al obtener lapso academico" });
+    }
+
+    const response = {
+      docente: profesor,
+    };
+    console.log("🔍 getStudentProfile - Respuesta exitosa:", response);
+    res.json(response);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message || "Error en el servidor" });
+  }
+}
+
 export async function getUnidadesList(req, res) {
   try {
     const today = new Date();
@@ -917,7 +1161,7 @@ export async function getDocentes(req, res) {
         cedula: profesor.cedula,
         correo: profesor.Users.correo,
         estatus: profesor.Users.status,
-        localidad : profesor.localidad,
+        localidad: profesor.localidad,
         nombre:
           profesor.nombre1 +
           " " +

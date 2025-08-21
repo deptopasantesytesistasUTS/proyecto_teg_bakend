@@ -20,6 +20,12 @@ import {
   getJudges,
   putAccess,
   putTitleA,
+  getTeacherProfile,
+  putDatosPersonalesDoc,
+  putTelfDoc,
+  putCorreoDoc,
+  putPasswordDoc,
+  putAccessDoc,
 } from "../controlers/controllers_admin.js";
 
 const router = express.Router();
@@ -43,6 +49,8 @@ router.get("/estudiantesA", getStudentListAdmin);
 
 //getStudentProfile
 router.get("/estudiantePerfil/:cedula", getStudentProfile);
+
+router.get("/docentePerfil/:cedula", getTeacherProfile);
 
 //getStudentProfileSimple - versión simplificada para pruebas
 router.get("/estudiantePerfilSimple/:cedula", async (req, res) => {
@@ -160,5 +168,17 @@ router.put("/estudiante/restorePassword",putPassword);
 router.put("/estudiante/setAccess", putAccess);
 
 router.put("/estudiante/assign-Title",putTitleA);
+
+router.put("/docente/changeInfo", putDatosPersonalesDoc);
+
+router.put("/docente/changeTelf", putTelfDoc);
+
+router.put("/docente/changeCorreo", putCorreoDoc);
+
+router.put("/docente/restorePassword", putPasswordDoc);
+
+router.put("/docente/setAccess", putAccessDoc);
+
+router.put("/docente/assign-Title", putTitleA);
 
 export default router;

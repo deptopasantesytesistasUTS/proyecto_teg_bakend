@@ -24,6 +24,11 @@ export async function loginUser(req, res) {
     if (!user) {
       return res.status(401).json({ error: "Usuario o contraseña incorrectos" });
     }
+
+    if(!(user.status === "activo")) return res
+      .status(400)
+      .json({ error: "Acceso Denegado" });
+
     const isMatch = await bcryptjs.compare(password, user.password);
     // Comparación simple, en producción usa hash
     if (!isMatch) {
