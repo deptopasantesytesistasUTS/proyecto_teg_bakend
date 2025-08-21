@@ -1034,20 +1034,17 @@ export async function getProfesorParaCursos(req, res) {
       });
     }
 
-    const resProfesores = profesores.map((profesor) => {
-      console.log(profesor);
-      return {
-        idProfesor: profesor.Personal[0].cedula,
-        nombre:
-          profesor.Personal[0].nombre1 +
-          " " +
-          profesor.Personal[0].nombre2 +
-          " " +
-          profesor.Personal[0].apellido1 +
-          " " +
-          profesor.Personal[0].apellido2,
-      };
-    });
+    const resProfesores = profesores
+      .filter((profesor) => Array.isArray(profesor.Personal) && profesor.Personal.length > 0)
+      .map((profesor) => {
+        const p = profesor.Personal[0];
+        return {
+          idProfesor: p.cedula,
+          nombre: [p.nombre1, p.nombre2, p.apellido1, p.apellido2]
+            .filter(Boolean)
+            .join(" "),
+        };
+      });
 
     res.json({
       profesores: resProfesores,

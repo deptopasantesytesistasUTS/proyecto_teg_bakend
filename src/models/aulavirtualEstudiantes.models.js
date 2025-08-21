@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, materia_categoria } from "@prisma/client";
 import { tr } from "date-fns/locale";
 const prisma = new PrismaClient();
 
@@ -365,71 +365,87 @@ export async function getAllStudentsTitles(lapsoId) {
               select: {
                 categoria: true
               }
+            },
+            Personal: {
+              select: {
+                nombre1: true,
+                nombre2: true,
+                apellido1: true,
+                apellido2: true,
+                cedula: true
+              }
             }
           }
         }
       }
     });
 
-    const titlesData = [];
+    // Mapear tutorías para identificar tutor (materia categoría Tutorías)
+    const tutorias = await prisma.matricula.findMany({
+      where: {
+        lapsoAcac: lapsoId,
+        Secciones: {
+          is: {
+            Materias: { is: { categoria: materia_categoria.Tutorias } }
+          }
+        }
+      },
+      include: {
+        Estudiantes: { select: { cedula: true } },
+        Secciones: { include: { Personal: true } }
+      }
+    });
+    const estudianteCedulaToTutor = new Map();
+    tutorias.forEach(t => {
+      const p = t.Secciones?.Personal;
+      if (!p || !t.Estudiantes?.cedula) return;
+      const nombre = [p.nombre1, p.nombre2, p.apellido1, p.apellido2].filter(Boolean).join(' ');
+      estudianteCedulaToTutor.set(t.Estudiantes.cedula, nombre);
+    });
 
+    // Jurados por estudiante/lapso
+    const jurados = await prisma.jurados.findMany({
+      where: { lapso: lapsoId },
+      include: { Personal: true }
+    });
+    const estudianteCedulaToJurados = new Map();
+    jurados.forEach(j => {
+      const nombre = [j.Personal?.nombre1, j.Personal?.nombre2, j.Personal?.apellido1, j.Personal?.apellido2]
+        .filter(Boolean).join(' ');
+      const list = estudianteCedulaToJurados.get(j.cedulaEstudiante) || [];
+      if (nombre) list.push(nombre);
+      estudianteCedulaToJurados.set(j.cedulaEstudiante, list);
+    });
+
+    const titlesData = [];
     matriculas.forEach(matricula => {
       const student = matricula.Estudiantes;
       const section = matricula.Secciones;
-      
-      // Agregar título 1 si existe
-      if (matricula.titulo1) {
-        titlesData.push({
-          cedula: student.cedula,
-          nombre: `${student.nombre1} ${student.apellido1}`,
-          email: student.Users?.correo || '',
-          carrera: student.Carreras?.nombre || '',
-          materia: section.Materias?.categoria || '',
-          titulo: matricula.titulo1,
-          proposito: matricula.propositoInv1 || '',
-          lineaInvestigacion: matricula.lineaInv1 || '',
-          lugar: matricula.lugar1 || '',
-          direccion: matricula.direccionL1 || '',
-          telefono: matricula.lugar1Telf || '',
-          movil: matricula.lugar1Movil || ''
-        });
-      }
+      const tutorName = estudianteCedulaToTutor.get(student.cedula) || '';
+      const juradosNombres = estudianteCedulaToJurados.get(student.cedula) || [];
 
-      // Agregar título 2 si existe
-      if (matricula.titulo2) {
+      const pushEntry = (titulo, proposito, linea, lugar, direccion, telf, movil) => {
         titlesData.push({
           cedula: student.cedula,
-          nombre: `${student.nombre1} ${student.apellido1}`,
+          nombre: [student.nombre1, student.nombre2, student.apellido1, student.apellido2].filter(Boolean).join(' ').trim(),
           email: student.Users?.correo || '',
           carrera: student.Carreras?.nombre || '',
           materia: section.Materias?.categoria || '',
-          titulo: matricula.titulo2,
-          proposito: matricula.propositoInv2 || '',
-          lineaInvestigacion: matricula.lineaInv2 || '',
-          lugar: matricula.lugar2 || '',
-          direccion: matricula.direccionL2 || '',
-          telefono: matricula.lugar2Telf || '',
-          movil: matricula.lugar2Movil || ''
+          titulo: titulo || '',
+          proposito: proposito || '',
+          lineaInvestigacion: linea || '',
+          lugar: lugar || '',
+          direccion: direccion || '',
+          telefono: telf || '',
+          movil: movil || '',
+          tutor: tutorName,
+          jurados: juradosNombres
         });
-      }
+      };
 
-      // Agregar título 3 si existe
-      if (matricula.titulo3) {
-        titlesData.push({
-          cedula: student.cedula,
-          nombre: `${student.nombre1} ${student.apellido1}`,
-          email: student.Users?.correo || '',
-          carrera: student.Carreras?.nombre || '',
-          materia: section.Materias?.categoria || '',
-          titulo: matricula.titulo3,
-          proposito: matricula.propositoInv3 || '',
-          lineaInvestigacion: matricula.lineaInv3 || '',
-          lugar: matricula.lugar3 || '',
-          direccion: matricula.direccionL3 || '',
-          telefono: matricula.lugar3Telf || '',
-          movil: matricula.lugar3Movil || ''
-        });
-      }
+      if (matricula.titulo1) pushEntry(matricula.titulo1, matricula.propositoInv1, matricula.lineaInv1, matricula.lugar1, matricula.direccionL1, matricula.lugar1Telf, matricula.lugar1Movil);
+      if (matricula.titulo2) pushEntry(matricula.titulo2, matricula.propositoInv2, matricula.lineaInv2, matricula.lugar2, matricula.direccionL2, matricula.lugar2Telf, matricula.lugar2Movil);
+      if (matricula.titulo3) pushEntry(matricula.titulo3, matricula.propositoInv3, matricula.lineaInv3, matricula.lugar3, matricula.direccionL3, matricula.lugar3Telf, matricula.lugar3Movil);
     });
 
     return titlesData;
