@@ -8,6 +8,7 @@ import {
   createComunicado,
   updateComunicado,
   deleteComunicado,
+  getEstadisticasAula,
 } from "../models/models_aulavirtual.js";
 
 import { getSemesterByDate2 } from "../models/models_admin.js";
@@ -47,11 +48,11 @@ export async function getMateriasDashboardController(req, res) {
     const isoToday = today.toISOString();
 
     const lapso = await getSemesterByDate2(isoToday);
-    
+
     const materias = await getMateriasDashboard(userId, role, lapso.id);
     res.json(materias);
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({ error: "Error al obtener materias para dashboard" });
   }
 }
@@ -81,6 +82,83 @@ export async function getParticipantesBySeccionController(req, res) {
   }
 }
 
+export async function getStatisticsAula(req, res) {
+  try {
+    const { idMateria, cedula } = req.params;
+    console.log(req.params)
+    console.log(cedula)
+
+    if (!idMateria || !cedula) {
+      return res.status(400).json({ error: "Datos faltantes" });
+    }
+
+    const participantes = await getEstadisticasAula(parseInt(idMateria),parseInt(cedula));
+    let protocolo1 = 0;
+    let protocolo2 = 0;
+    let protocolo3 = 0;
+    let cap1 = 0;
+    let cap2 = 0;
+    let cap3 = 0;
+    let caE = 0;
+    let InstrInv = 0;
+    let instr1 = 0;
+    let instr2 = 0;
+    let eProp = 0;
+    let Informe = 0;
+    let TomoC = 0;
+    let Diapositivas = 0;
+    let totalEst = 0
+
+    participantes.map((p) => {
+      totalEst = totalEst + 1
+      if (p.urlTitulo1PDF !== null) protocolo1 = protocolo1 + 1;
+      if (p.urlTitulo1PDF !== null) protocolo2 = protocolo2 + 1;
+      if (p.urlTitulo1PDF !== null) protocolo3 = protocolo3 + 1;
+      if (p.borrador1 !== null) {
+        if (p.Secciones.Materias.categoria === "Trabajo_Especial_de_Grado")
+          eProp = eProp + 1;
+        else cap1 = cap1 +1;
+      }
+      if (p.borrador2 !== null) {
+        if (p.Secciones.Materias.categoria === "Trabajo_Especial_de_Grado")
+          Informe = Informe + 1;
+        else cap2 = cap2 + 1;
+      }
+      if (p.borrador3 !== null) {
+        if (p.Secciones.Materias.categoria === "Trabajo_Especial_de_Grado")
+          TomoC = TomoC + 1;
+        else cap3 = cap3 + 1;
+      }
+      if (p.borrador4 !== null) InstrInv = InstrInv + 1;
+      if (p.borradorFinal !== null) Diapositivas = Diapositivas + 1;
+      if (p.instr1Url !== null) instr1 = instr1 + 1;
+      if (p.instr2Url !== null) instr2 = instr2 + 1;
+      if (p.urlCartaEntrega !== null) caE = caE +1;
+    });
+
+    res.json({
+    totalEst,
+    protocolo1,
+    protocolo2,
+    protocolo3,
+    cap1,
+    cap2,
+    cap3,
+    caE,
+    InstrInv,
+    instr1,
+    instr2,
+    eProp,
+    Informe,
+    TomoC,
+    Diapositivas,
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error al obtener participantes" });
+  }
+}
+
 // ================= Comunicados (CRUD) =================
 
 export async function getComunicadosController(req, res) {
@@ -100,7 +178,12 @@ export async function postComunicadosController(req, res) {
     if (!titulo || !texto) {
       return res.status(400).json({ error: "titulo y texto son requeridos" });
     }
-    const comunicado = await createComunicado({ titulo, texto, idUsuario, seccionesIds });
+    const comunicado = await createComunicado({
+      titulo,
+      texto,
+      idUsuario,
+      seccionesIds,
+    });
     res.status(201).json(comunicado);
   } catch (error) {
     console.error("Error en postComunicadosController:", error);

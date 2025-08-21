@@ -191,3 +191,35 @@ export async function deleteComunicado(idComunicado) {
   // Borrar comunicado
   return prisma.comunicados.delete({ where: { idComunicado: id } });
 }
+
+export async function getEstadisticasAula(idMateria,cedula){
+
+  const seccion = await prisma.secciones.findFirst({
+    where: {
+      idMateria: idMateria,
+      idDocente: cedula,
+    },
+  });
+
+  if (!seccion) {
+    throw new Error(
+      "Seccion no encontrada"
+    );
+  }
+
+
+  console.log("hoal ",seccion)
+
+  return prisma.matricula.findMany({
+    where:{
+      idSeccion: seccion.idSeccion
+    },
+    include:{
+      Secciones: {
+        include: {
+          Materias: true,
+        }
+      },
+    }
+  })
+}

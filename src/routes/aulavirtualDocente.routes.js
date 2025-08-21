@@ -1,5 +1,9 @@
 import express from "express";
+
 import { crearTutoriaController, getEstudiantesPorDocente , obtenerTutoriasController , actualizarTutoriaController, eliminarTutoriaController , crearAsistenciaController , obtenerAsistenciasController, getUltimosConectadosController, getEstadisticasEntregasController } from "../controlers/aulavirtualDocente.controlers.js";
+
+import { getStatisticsAula } from "../controlers/controllers_aulavirtual.js";
+
 
 const router = express.Router();
 
@@ -19,6 +23,8 @@ router.delete("/tutorias/:id", eliminarTutoriaController);
 router.post("/asistencias", crearAsistenciaController);
 router.get("/asistencias/:idSeccion", obtenerAsistenciasController);
 
+
+
 // informacion 
 
 // Últimos conectados por sección
@@ -26,5 +32,10 @@ router.get("/secciones/:idSeccion/ultimos-conectados", getUltimosConectadosContr
 
 // Estadísticas de entregas por sección
 router.get("/secciones/:idSeccion/estadisticas-entregas", getEstadisticasEntregasController);
+
+
+router.get("/estadisticas/:idMateria/:cedula", getStatisticsAula);
+
+
 
 export default router;
