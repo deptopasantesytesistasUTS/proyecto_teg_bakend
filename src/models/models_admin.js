@@ -134,6 +134,7 @@ export async function createStudent(
   apellido1,
   apellido2,
   telf,
+  localidad,
   idCarrera,
   idUsuario
 ) {
@@ -145,6 +146,7 @@ export async function createStudent(
       apellido1: apellido1,
       apellido2: apellido2,
       telf: telf,
+      localidad: localidad,
       idCarrera: idCarrera,
       idUsuario: idUsuario,
     },
@@ -516,6 +518,7 @@ export async function createDocente(
   apellido1,
   apellido2,
   telf,
+  localidad,
   userID
 ) {
   return prisma.personal.create({
@@ -527,6 +530,7 @@ export async function createDocente(
       apellido2: apellido2,
       userID: userID,
       telf: telf,
+      localidad: localidad,
     },
   });
 }

@@ -547,6 +547,7 @@ export async function postEstudiante(req, res) {
         estudiante.apellido1,
         estudiante.apellido2,
         estudiante.telf,
+        estudiante.localidad,
         parseInt(estudiante.carrera, 10),
         user.userId
       );
@@ -968,6 +969,7 @@ export async function postDocente(req, res) {
       docente.firstLastName,
       docente.secondLastName,
       docente.telf,
+      docente.localidad,
       user.userId
     );
 
